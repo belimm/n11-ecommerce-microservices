@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: config-server
+  profiles:
+    active: local
+    include: native
+  cloud:
+    compatibility-verifier:
+      enabled: false
+
+server:
+  port: 8888
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+eureka:
+  instance:
+    hostname: config-server

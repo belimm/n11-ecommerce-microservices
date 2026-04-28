@@ -1,0 +1,35 @@
+server:
+  port: 8761
+
+spring:
+  application:
+    name: discovery-server
+  cloud:
+    config:
+      enabled: ${CONFIG_ENABLED:false}
+    compatibility-verifier:
+      enabled: false
+  config:
+    import: "optional:configserver:${CONFIG_URI:http://localhost:8888}"
+
+eureka:
+  instance:
+    hostname: ${EUREKA_HOSTNAME:localhost}
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    prometheus:
+      enabled: true
+    health:
+      probes:
+        enabled: true
+  health:
+    probes:
+      enabled: true

@@ -1,0 +1,88 @@
+# =========================
+# API Gateway - application.yml
+# =========================
+
+spring:
+  application:
+    name: api-gateway
+
+  profiles:
+    active: local
+    include: native
+
+  main:
+    allow-bean-definition-overriding: true
+
+  cloud:
+    compatibility-verifier:
+      enabled: false
+
+    # -------------------------
+    # Config Server
+    # - Docker içinde: CONFIG_URI=http://config-server:8888
+    # - Lokal: fallback http://localhost:8888
+    # -------------------------
+    config:
+      uri: ${CONFIG_URI:http://localhost:8888}
+
+    gateway:
+      # -------------------------
+      # Discovery Locator
+      # - Docker ortamında: GATEWAY_DISCOVERY_ENABLED=true
+      # - Lokalde: default false (deadlock önlemek için)
+      # -------------------------
+      discovery:
+        locator:
+          enabled: ${GATEWAY_DISCOVERY_ENABLED:false}
+          lower-case-service-id: true
+
+
+#      server:
+#        webmvc:
+#          routes:
+#            - id: USER-SERVICE
+#              uri: lb://USER-SERVICE
+#              predicates:
+#                - Path=/api/user/**
+#            - id: PRODUCT-SERVICE
+#              uri: lb://PRODUCT-SERVICE
+#              predicates:
+#                - Path=/api/product/**
+#
+#            - id: SHOPPING-CART-SERVICE
+#              uri: lb://SHOPPING-CART-SERVICE
+#              predicates:
+#                - Path=/api/shopping-cart/**
+#
+#            - id: PRODUCT-SERVICE-FEIGN-CLIENT
+#              uri: lb://PRODUCT-SERVICE-FEIGN-CLIENT
+#              predicates:
+#                - Path=/api/feign-client/**
+#
+#            - id: ORDER-SERVICE
+#              uri: lb://ORDER-SERVICE
+#              predicates:
+#                - Path=/api/orders/**
+#
+
+
+  # -------------------------
+  # Config import
+  # -------------------------
+  config:
+    import: optional:configserver:${CONFIG_URI:http://localhost:8888}
+
+server:
+  port: 8080
+
+# -------------------------
+# Eureka
+# - Docker içinde: EUREKA_URI=http://discovery-server:8761/eureka
+# - Lokal: fallback http://localhost:8761/eureka
+# -------------------------
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URI:http://localhost:8761/eureka}
+    register-with-eureka: true
+    fetch-registry: true
