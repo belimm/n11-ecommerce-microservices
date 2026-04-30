@@ -16,6 +16,8 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Validate commit message format
+        # Merge commit'leri ve PR'ları atla, sadece direkt push'larda kontrol et
+        if: github.event_name == 'push' && !startsWith(github.event.head_commit.message, 'Merge')
         run: |
           COMMIT_MSG=$(git log -1 --pretty=%B)
           echo "Commit message: $COMMIT_MSG"
@@ -34,9 +36,9 @@ jobs:
 
       - name: Build services
         run: |
-          for service in $(find . -maxdepth 1 -type d -name "*-server" -o \
-                                  -maxdepth 1 -type d -name "*-service" -o \
-                                  -maxdepth 1 -type d -name "*-gateway" | sort); do
+          for service in $(find . -maxdepth 1 -type d \( -name "*-server" -o \
+                          -name "*-service" -o \
+                          -name "*-gateway" \) | sort); do
             if [ -f "$service/pom.xml" ]; then
               echo "🔨 Building $service..."
               cd $service
@@ -47,9 +49,9 @@ jobs:
 
       - name: Run tests
         run: |
-          for service in $(find . -maxdepth 1 -type d -name "*-server" -o \
-                                  -maxdepth 1 -type d -name "*-service" -o \
-                                  -maxdepth 1 -type d -name "*-gateway" | sort); do
+          for service in $(find . -maxdepth 1 -type d \( -name "*-server" -o \
+                          -name "*-service" -o \
+                          -name "*-gateway" \) | sort); do
             if [ -f "$service/pom.xml" ]; then
               echo "🧪 Testing $service..."
               cd $service
