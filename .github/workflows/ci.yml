@@ -32,11 +32,31 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Build all services
-        run: mvn clean package -DskipTests --batch-mode
+      - name: Build services
+        run: |
+          for service in $(find . -maxdepth 1 -type d -name "*-server" -o \
+                                  -maxdepth 1 -type d -name "*-service" -o \
+                                  -maxdepth 1 -type d -name "*-gateway" | sort); do
+            if [ -f "$service/pom.xml" ]; then
+              echo "🔨 Building $service..."
+              cd $service
+              mvn clean package -DskipTests --batch-mode
+              cd ..
+            fi
+          done
 
       - name: Run tests
-        run: mvn test --batch-mode
+        run: |
+          for service in $(find . -maxdepth 1 -type d -name "*-server" -o \
+                                  -maxdepth 1 -type d -name "*-service" -o \
+                                  -maxdepth 1 -type d -name "*-gateway" | sort); do
+            if [ -f "$service/pom.xml" ]; then
+              echo "🧪 Testing $service..."
+              cd $service
+              mvn test --batch-mode
+              cd ..
+            fi
+          done
 
       - name: Slack — Success
         if: success()
