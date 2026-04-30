@@ -1,0 +1,66 @@
+name: CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: CD Pipeline
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build & Push Docker images (Jib)
+        run: |
+          for service in $(find . -maxdepth 1 -type d \( -name "*-server" \
+            -o -name "*-service" \
+            -o -name "*-gateway" \) | sort); do
+            if [ -f "$service/pom.xml" ]; then
+              echo "🐳 Building image for $service..."
+              cd $service
+              mvn compile jib:build \
+                -Djib.to.auth.username=${{ secrets.DOCKERHUB_USERNAME }} \
+                -Djib.to.auth.password=${{ secrets.DOCKERHUB_TOKEN }} \
+                --batch-mode
+              cd ..
+            fi
+          done
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd ~/ecommerce
+            docker-compose pull
+            docker-compose up -d
+            echo "✅ Deployed successfully"
+
+      - name: Slack — Success
+        if: success()
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_COLOR: good
+          SLACK_MESSAGE: "🚀 Deployed to EC2 — ${{ github.event.head_commit.message }}"
+
+      - name: Slack — Failure
+        if: failure()
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_COLOR: danger
+          SLACK_MESSAGE: "❌ Deploy failed — ${{ github.event.head_commit.message }}"
