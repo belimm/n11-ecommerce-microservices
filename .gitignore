@@ -1,0 +1,15 @@
+.DS_Store
+.idea/
+*.iml
+
+target/
+*/target/
+
+.env
+*.env
+!.env.example
+
+logs/
+*.log
+
+.mvn/wrapper/maven-wrapper.jar

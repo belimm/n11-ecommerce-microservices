@@ -1,0 +1,74 @@
+server:
+  port: 8085
+
+spring:
+  datasource:
+    url: ${CART_DB_URL:jdbc:postgresql://localhost:5432/n11bc}
+    username: ${CART_DB_USERNAME:postgres}
+    password: ${CART_DB_PASSWORD:1234}
+  jpa:
+    hibernate:
+      ddl-auto: ${CART_JPA_DDL_AUTO:update}
+    show-sql: ${CART_JPA_SHOW_SQL:true}
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    open-in-view: false
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/realms/microservice-realm}
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://localhost:8080/realms/microservice-realm/protocol/openid-connect/certs}
+  main:
+    allow-bean-definition-overriding: true
+  cloud:
+    compatibility-verifier:
+      enabled: false
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URI:http://localhost:8761/eureka}
+    register-with-eureka: true
+    fetch-registry: true
+
+management:
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    prometheus:
+      enabled: true
+    health:
+      probes:
+        enabled: true
+  health:
+    probes:
+      enabled: true
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+
+app:
+  product-service:
+    base-url: ${PRODUCT_SERVICE_BASE_URL:http://localhost:8084}
+  cart:
+    abandoned-after-hours: ${CART_ABANDONED_AFTER_HOURS:24}
+    abandoned-scan-cron: ${CART_ABANDONED_SCAN_CRON:0 0 * * * *}
+  rabbitmq:
+    cart-exchange: cart.exchange
+    abandoned-cart-queue: abandoned.cart.queue
+    abandoned-cart-routing-key: abandoned.cart
