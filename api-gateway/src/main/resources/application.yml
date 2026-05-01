@@ -69,6 +69,18 @@ spring:
             predicates:
               - Path=/api/cart/**
 
+          - id: order-service-docs
+            uri: lb://order-service
+            predicates:
+              - Path=/order-service/v3/api-docs
+            filters:
+              - RewritePath=/order-service/(?<segment>.*), /${segment}
+
+          - id: order-service-orders
+            uri: lb://order-service
+            predicates:
+              - Path=/api/orders/**
+
   config:
     import: optional:configserver:${CONFIG_URI:http://localhost:8762}
 
@@ -92,3 +104,5 @@ springdoc:
         url: /product-service/v3/api-docs
       - name: Cart Service
         url: /cart-service/v3/api-docs
+      - name: Order Service
+        url: /order-service/v3/api-docs
