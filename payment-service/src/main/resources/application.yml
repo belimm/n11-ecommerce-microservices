@@ -1,0 +1,112 @@
+spring:
+  application:
+    name: payment-service
+  config:
+    import: "optional:configserver:${CONFIG_URI:http://localhost:8762}"
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
+  datasource:
+    url: ${PAYMENT_DB_URL:jdbc:postgresql://localhost:5432/n11bc}
+    username: ${PAYMENT_DB_USERNAME:postgres}
+    password: ${PAYMENT_DB_PASSWORD:1234}
+  jpa:
+    hibernate:
+      ddl-auto: ${PAYMENT_JPA_DDL_AUTO:update}
+    show-sql: ${PAYMENT_JPA_SHOW_SQL:true}
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    open-in-view: false
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/realms/microservice-realm}
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://localhost:8080/realms/microservice-realm/protocol/openid-connect/certs}
+  main:
+    allow-bean-definition-overriding: true
+  cloud:
+    compatibility-verifier:
+      enabled: false
+
+server:
+  port: ${PAYMENT_SERVICE_PORT:8088}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URI:http://localhost:8761/eureka}
+    register-with-eureka: true
+    fetch-registry: true
+
+management:
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    prometheus:
+      enabled: true
+    health:
+      probes:
+        enabled: true
+  health:
+    probes:
+      enabled: true
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+
+app:
+  rabbitmq:
+    stock-exchange: stock.exchange
+    payment-exchange: payment.exchange
+    stock-reserved-queue: stock.reserved.queue
+    stock-reserved-routing-key: stock.reserved
+    payment-success-queue: payment.success.queue
+    payment-success-routing-key: payment.success
+    payment-failed-queue: payment.failed.queue
+    payment-failed-routing-key: payment.failed
+  iyzico:
+    api-key: ${IYZICO_API_KEY:}
+    secret-key: ${IYZICO_SECRET_KEY:}
+    base-url: ${IYZICO_BASE_URL:https://sandbox-api.iyzipay.com}
+    locale: ${IYZICO_LOCALE:tr}
+    currency: ${IYZICO_CURRENCY:TRY}
+    payment-channel: WEB
+    payment-group: PRODUCT
+    installment: 1
+    sandbox-card:
+      card-holder-name: ${IYZICO_CARD_HOLDER_NAME:John Doe}
+      card-number: ${IYZICO_CARD_NUMBER:5526080000000006}
+      expire-year: ${IYZICO_CARD_EXPIRE_YEAR:2030}
+      expire-month: ${IYZICO_CARD_EXPIRE_MONTH:12}
+      cvc: ${IYZICO_CARD_CVC:123}
+    buyer:
+      name: ${IYZICO_BUYER_NAME:John}
+      surname: ${IYZICO_BUYER_SURNAME:Doe}
+      identity-number: ${IYZICO_BUYER_IDENTITY_NUMBER:74300864111}
+      email: ${IYZICO_BUYER_EMAIL:sandboxtest@gmail.com}
+      gsm-number: ${IYZICO_BUYER_GSM_NUMBER:+905555555555}
+      ip: ${IYZICO_BUYER_IP:127.0.0.1}
+      registration-address: ${IYZICO_BUYER_ADDRESS:Local development address}
+      city: ${IYZICO_BUYER_CITY:Istanbul}
+      country: ${IYZICO_BUYER_COUNTRY:Turkey}
+      zip-code: ${IYZICO_BUYER_ZIP_CODE:34000}
+    address:
+      contact-name: ${IYZICO_ADDRESS_CONTACT_NAME:John Doe}
+      address: ${IYZICO_ADDRESS:Local development address}
+      city: ${IYZICO_ADDRESS_CITY:Istanbul}
+      country: ${IYZICO_ADDRESS_COUNTRY:Turkey}
+      zip-code: ${IYZICO_ADDRESS_ZIP_CODE:34000}

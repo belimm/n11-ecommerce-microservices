@@ -1,9 +1,12 @@
-package com.n11bc.stock_service.event;
+package com.n11bc.payment_service.event;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public record StockReservedEvent(
         Long orderId,
         String orderNumber,
@@ -12,6 +15,7 @@ public record StockReservedEvent(
         List<StockReservedItem> items,
         LocalDateTime reservedAt
 ) {
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public record StockReservedItem(
             Long productId,
             String productName,

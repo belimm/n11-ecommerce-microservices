@@ -23,8 +23,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -90,7 +94,7 @@ public class InventoryServiceImpl implements InventoryService {
                 throw new InvalidStockAdjustmentException("Stock reservation already released for order: " + event.orderId());
             }
             log.info("Order {} already has stock reservations; returning existing reserved event", event.orderId());
-            return toStockReservedEvent(event.orderId(), event.orderNumber(), event.userId(), existingReservations);
+            return toStockReservedEvent(event, existingReservations);
         }
 
         List<StockReservation> reservations = event.items().stream()
@@ -98,7 +102,7 @@ public class InventoryServiceImpl implements InventoryService {
                 .toList();
         reservationRepository.saveAll(reservations);
         log.info("Reserved stock for order {}", event.orderId());
-        return toStockReservedEvent(event.orderId(), event.orderNumber(), event.userId(), reservations);
+        return toStockReservedEvent(event, reservations);
     }
 
     @Override
@@ -146,14 +150,24 @@ public class InventoryServiceImpl implements InventoryService {
                 .orElseThrow(() -> new InventoryNotFoundException(productId));
     }
 
-    private StockReservedEvent toStockReservedEvent(Long orderId, String orderNumber, String userId, List<StockReservation> reservations) {
+    private StockReservedEvent toStockReservedEvent(OrderCreatedEvent event, List<StockReservation> reservations) {
+        Map<Long, OrderCreatedEvent.OrderCreatedItem> originalItems = event.items().stream()
+                .collect(Collectors.toMap(OrderCreatedEvent.OrderCreatedItem::productId, Function.identity(), (first, ignored) -> first));
         List<StockReservedEvent.StockReservedItem> items = reservations.stream()
-                .map(reservation -> new StockReservedEvent.StockReservedItem(
-                        reservation.getProductId(),
-                        reservation.getProductName(),
-                        reservation.getQuantity()))
+                .map(reservation -> toStockReservedItem(reservation, originalItems.get(reservation.getProductId())))
                 .toList();
-        return new StockReservedEvent(orderId, orderNumber, userId, items, LocalDateTime.now());
+        return new StockReservedEvent(event.orderId(), event.orderNumber(), event.userId(), event.totalPrice(), items, LocalDateTime.now());
+    }
+
+    private StockReservedEvent.StockReservedItem toStockReservedItem(StockReservation reservation, OrderCreatedEvent.OrderCreatedItem originalItem) {
+        BigDecimal unitPrice = originalItem == null ? BigDecimal.ZERO : originalItem.unitPrice();
+        BigDecimal lineTotal = originalItem == null ? unitPrice.multiply(BigDecimal.valueOf(reservation.getQuantity())) : originalItem.lineTotal();
+        return new StockReservedEvent.StockReservedItem(
+                reservation.getProductId(),
+                reservation.getProductName(),
+                reservation.getQuantity(),
+                unitPrice,
+                lineTotal);
     }
 
     private String reasonOrDefault(String reason) {

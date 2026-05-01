@@ -93,6 +93,19 @@ spring:
             predicates:
               - Path=/api/inventory/**
 
+
+          - id: payment-service-docs
+            uri: lb://payment-service
+            predicates:
+              - Path=/payment-service/v3/api-docs
+            filters:
+              - RewritePath=/payment-service/(?<segment>.*), /${segment}
+
+          - id: payment-service-payments
+            uri: lb://payment-service
+            predicates:
+              - Path=/api/payments/**
+
   config:
     import: optional:configserver:${CONFIG_URI:http://localhost:8762}
 
@@ -120,3 +133,5 @@ springdoc:
         url: /order-service/v3/api-docs
       - name: Stock Service
         url: /stock-service/v3/api-docs
+      - name: Payment Service
+        url: /payment-service/v3/api-docs
