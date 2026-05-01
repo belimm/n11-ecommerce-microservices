@@ -1,0 +1,85 @@
+spring:
+  application:
+    name: stock-service
+  config:
+    import: "optional:configserver:${CONFIG_URI:http://localhost:8762}"
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
+  datasource:
+    url: ${STOCK_DB_URL:jdbc:postgresql://localhost:5432/n11bc}
+    username: ${STOCK_DB_USERNAME:postgres}
+    password: ${STOCK_DB_PASSWORD:1234}
+  jpa:
+    hibernate:
+      ddl-auto: ${STOCK_JPA_DDL_AUTO:update}
+    show-sql: ${STOCK_JPA_SHOW_SQL:true}
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    open-in-view: false
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/realms/microservice-realm}
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://localhost:8080/realms/microservice-realm/protocol/openid-connect/certs}
+  main:
+    allow-bean-definition-overriding: true
+  cloud:
+    compatibility-verifier:
+      enabled: false
+
+server:
+  port: ${STOCK_SERVICE_PORT:8087}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URI:http://localhost:8761/eureka}
+    register-with-eureka: true
+    fetch-registry: true
+
+management:
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    prometheus:
+      enabled: true
+    health:
+      probes:
+        enabled: true
+  health:
+    probes:
+      enabled: true
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+
+app:
+  rabbitmq:
+    order-exchange: order.exchange
+    stock-exchange: stock.exchange
+    payment-exchange: payment.exchange
+    order-created-queue: order.created.queue
+    order-created-routing-key: order.created
+    stock-reserved-queue: stock.reserved.queue
+    stock-reserved-routing-key: stock.reserved
+    stock-failed-queue: stock.failed.queue
+    stock-failed-routing-key: stock.failed
+    stock-released-queue: stock.released.queue
+    stock-released-routing-key: stock.released
+    payment-failed-queue: payment.failed.queue
+    payment-failed-routing-key: payment.failed
