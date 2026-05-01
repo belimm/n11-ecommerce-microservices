@@ -17,72 +17,78 @@ spring:
     compatibility-verifier:
       enabled: false
 
-    # -------------------------
-    # Config Server
-    # - Docker içinde: CONFIG_URI=http://config-server:8888
-    # - Lokal: fallback http://localhost:8888
-    # -------------------------
     config:
-      uri: ${CONFIG_URI:http://localhost:8888}
+      uri: ${CONFIG_URI:http://localhost:8762}
 
     gateway:
-      # -------------------------
-      # Discovery Locator
-      # - Docker ortamında: GATEWAY_DISCOVERY_ENABLED=true
-      # - Lokalde: default false (deadlock önlemek için)
-      # -------------------------
-      discovery:
-        locator:
-          enabled: ${GATEWAY_DISCOVERY_ENABLED:false}
-          lower-case-service-id: true
+      mvc:
+        routes:
+          - id: user-service-docs
+            uri: lb://user-service
+            predicates:
+              - Path=/user-service/v3/api-docs
+            filters:
+              - RewritePath=/user-service/(?<segment>.*), /${segment}
 
+          - id: user-service-auth
+            uri: lb://user-service
+            predicates:
+              - Path=/api/auth/**
 
-#      server:
-#        webmvc:
-#          routes:
-#            - id: USER-SERVICE
-#              uri: lb://USER-SERVICE
-#              predicates:
-#                - Path=/api/user/**
-#            - id: PRODUCT-SERVICE
-#              uri: lb://PRODUCT-SERVICE
-#              predicates:
-#                - Path=/api/product/**
-#
-#            - id: SHOPPING-CART-SERVICE
-#              uri: lb://SHOPPING-CART-SERVICE
-#              predicates:
-#                - Path=/api/shopping-cart/**
-#
-#            - id: PRODUCT-SERVICE-FEIGN-CLIENT
-#              uri: lb://PRODUCT-SERVICE-FEIGN-CLIENT
-#              predicates:
-#                - Path=/api/feign-client/**
-#
-#            - id: ORDER-SERVICE
-#              uri: lb://ORDER-SERVICE
-#              predicates:
-#                - Path=/api/orders/**
-#
+          - id: user-service-users
+            uri: lb://user-service
+            predicates:
+              - Path=/api/users/**
 
+          - id: product-service-docs
+            uri: lb://product-service
+            predicates:
+              - Path=/product-service/v3/api-docs
+            filters:
+              - RewritePath=/product-service/(?<segment>.*), /${segment}
 
-  # -------------------------
-  # Config import
-  # -------------------------
+          - id: product-service-products
+            uri: lb://product-service
+            predicates:
+              - Path=/api/products/**
+
+          - id: product-service-categories
+            uri: lb://product-service
+            predicates:
+              - Path=/api/categories/**
+
+          - id: cart-service-docs
+            uri: lb://cart-service
+            predicates:
+              - Path=/cart-service/v3/api-docs
+            filters:
+              - RewritePath=/cart-service/(?<segment>.*), /${segment}
+
+          - id: cart-service-cart
+            uri: lb://cart-service
+            predicates:
+              - Path=/api/cart/**
+
   config:
-    import: optional:configserver:${CONFIG_URI:http://localhost:8888}
+    import: optional:configserver:${CONFIG_URI:http://localhost:8762}
 
 server:
-  port: 8080
+  port: 8763
 
-# -------------------------
-# Eureka
-# - Docker içinde: EUREKA_URI=http://discovery-server:8761/eureka
-# - Lokal: fallback http://localhost:8761/eureka
-# -------------------------
 eureka:
   client:
     service-url:
       defaultZone: ${EUREKA_URI:http://localhost:8761/eureka}
     register-with-eureka: true
     fetch-registry: true
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    urls:
+      - name: User Service
+        url: /user-service/v3/api-docs
+      - name: Product Service
+        url: /product-service/v3/api-docs
+      - name: Cart Service
+        url: /cart-service/v3/api-docs

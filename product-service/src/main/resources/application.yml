@@ -1,0 +1,70 @@
+spring:
+  application:
+    name: product-service
+  config:
+    import: "optional:configserver:${CONFIG_URI:http://localhost:8762}"
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
+  datasource:
+    url: ${PRODUCT_DB_URL:jdbc:postgresql://localhost:5432/n11bc}
+    username: ${PRODUCT_DB_USERNAME:postgres}
+    password: ${PRODUCT_DB_PASSWORD:1234}
+  jpa:
+    hibernate:
+      ddl-auto: ${PRODUCT_JPA_DDL_AUTO:update}
+    show-sql: ${PRODUCT_JPA_SHOW_SQL:true}
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    open-in-view: false
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/realms/microservice-realm}
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://localhost:8080/realms/microservice-realm/protocol/openid-connect/certs}
+  main:
+    allow-bean-definition-overriding: true
+  cloud:
+    compatibility-verifier:
+      enabled: false
+
+server:
+  port: ${PRODUCT_SERVICE_PORT:8084}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URI:http://localhost:8761/eureka}
+    register-with-eureka: true
+    fetch-registry: true
+
+management:
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    prometheus:
+      enabled: true
+    health:
+      probes:
+        enabled: true
+  health:
+    probes:
+      enabled: true
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+
+app:
+  seed:
+    enabled: ${PRODUCT_SEED_ENABLED:true}
+  observability:
+    loki-url: ${LOKI_URL:http://localhost:3100/loki/api/v1/push}

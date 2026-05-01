@@ -10,7 +10,7 @@ spring:
     compatibility-verifier:
       enabled: false
   config:
-    import: "optional:configserver:${CONFIG_URI:http://localhost:8888}"
+    import: "optional:configserver:${CONFIG_URI:http://localhost:8762}"
 
 eureka:
   instance:
