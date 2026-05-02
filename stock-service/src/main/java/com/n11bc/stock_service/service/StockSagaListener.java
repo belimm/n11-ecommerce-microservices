@@ -1,5 +1,6 @@
 package com.n11bc.stock_service.service;
 
+import com.n11bc.stock_service.event.OrderCancelledEvent;
 import com.n11bc.stock_service.event.OrderCreatedEvent;
 import com.n11bc.stock_service.event.PaymentFailedEvent;
 import com.n11bc.stock_service.event.StockFailedEvent;
@@ -35,6 +36,14 @@ public class StockSagaListener {
                     LocalDateTime.now()
             ));
         }
+    }
+
+
+    @RabbitListener(queues = "${app.rabbitmq.order-cancelled-queue}")
+    public void onOrderCancelled(OrderCancelledEvent event) {
+        log.info("OrderCancelledEvent received for order {}", event.orderId());
+        StockReleasedEvent releasedEvent = inventoryService.releaseStock(event.orderId(), reasonOrDefault(event.reason()));
+        eventPublisher.publishStockReleased(releasedEvent);
     }
 
     @RabbitListener(queues = "${app.rabbitmq.payment-failed-queue}")

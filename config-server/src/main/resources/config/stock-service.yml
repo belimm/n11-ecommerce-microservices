@@ -67,6 +67,8 @@ app:
     payment-exchange: payment.exchange
     order-created-queue: order.created.queue
     order-created-routing-key: order.created
+    order-cancelled-queue: order.cancelled.queue
+    order-cancelled-routing-key: order.cancelled
     stock-reserved-queue: stock.reserved.queue
     stock-reserved-routing-key: stock.reserved
     stock-failed-queue: stock.failed.queue

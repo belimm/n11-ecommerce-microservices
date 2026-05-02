@@ -34,6 +34,11 @@ public class RabbitMqConfig {
     }
 
     @Bean
+    public Queue orderCancelledQueue(@Value("${app.rabbitmq.order-cancelled-queue}") String queueName) {
+        return new Queue(queueName, true);
+    }
+
+    @Bean
     public Queue stockReservedQueue(@Value("${app.rabbitmq.stock-reserved-queue}") String queueName) {
         return new Queue(queueName, true);
     }
@@ -60,6 +65,15 @@ public class RabbitMqConfig {
             @Value("${app.rabbitmq.order-created-routing-key}") String routingKey
     ) {
         return BindingBuilder.bind(orderCreatedQueue).to(orderExchange).with(routingKey);
+    }
+
+    @Bean
+    public Binding orderCancelledBinding(
+            Queue orderCancelledQueue,
+            TopicExchange orderExchange,
+            @Value("${app.rabbitmq.order-cancelled-routing-key}") String routingKey
+    ) {
+        return BindingBuilder.bind(orderCancelledQueue).to(orderExchange).with(routingKey);
     }
 
     @Bean
