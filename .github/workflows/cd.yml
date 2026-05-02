@@ -71,6 +71,10 @@ jobs:
           GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
           GF_SECURITY_ALLOW_EMBEDDING=true
           EOF
+          if ! grep -q '^DB_URL=jdbc:' .env.production; then
+            echo "::error::DB_URL must start with jdbc:, for example jdbc:postgresql://host:5432/postgres?sslmode=require"
+            exit 1
+          fi
           chmod 644 .env.production
 
       - name: Prepare EC2 deployment directory
@@ -158,6 +162,26 @@ jobs:
               $COMPOSE --env-file .env.production logs --tail=160 api-gateway config-server cart-service order-service stock-service payment-service
               exit 1
             fi
+
+            echo "Checking Eureka registrations..."
+            for service in USER-SERVICE PRODUCT-SERVICE CART-SERVICE ORDER-SERVICE STOCK-SERVICE PAYMENT-SERVICE; do
+              SERVICE_OK=false
+              for i in $(seq 1 18); do
+                if curl -fsS "http://localhost:8761/eureka/apps/${service}" >/dev/null; then
+                  echo "${service} is registered in Eureka"
+                  SERVICE_OK=true
+                  break
+                fi
+                echo "${service} is not registered yet, retrying in 10s..."
+                sleep 10
+              done
+              if [ "$SERVICE_OK" = "false" ]; then
+                echo "${service} did not register in Eureka"
+                $COMPOSE --env-file .env.production ps
+                $COMPOSE --env-file .env.production logs --tail=120 "$(echo "$service" | tr '[:upper:]' '[:lower:]')"
+                exit 1
+              fi
+            done
 
             docker image prune -f
             echo "Deployed successfully"
