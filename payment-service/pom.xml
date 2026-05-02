@@ -99,7 +99,7 @@
                     <from><image>eclipse-temurin:21-jre</image></from>
                     <to><image>${env.DOCKERHUB_USERNAME}/payment-service:${project.version}</image></to>
                     <container>
-                        <ports><port>8088</port></ports>
+                        <ports><port>8086</port></ports>
                         <creationTime>USE_CURRENT_TIMESTAMP</creationTime>
                     </container>
                 </configuration>

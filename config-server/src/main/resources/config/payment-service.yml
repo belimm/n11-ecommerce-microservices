@@ -1,64 +1,7 @@
 server:
-  port: 8088
-
-spring:
-  datasource:
-    url: ${PAYMENT_DB_URL:jdbc:postgresql://localhost:5432/n11bc}
-    username: ${PAYMENT_DB_USERNAME:postgres}
-    password: ${PAYMENT_DB_PASSWORD:1234}
-  jpa:
-    hibernate:
-      ddl-auto: ${PAYMENT_JPA_DDL_AUTO:update}
-    show-sql: ${PAYMENT_JPA_SHOW_SQL:true}
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: true
-    open-in-view: false
-  rabbitmq:
-    host: ${RABBITMQ_HOST:localhost}
-    port: ${RABBITMQ_PORT:5672}
-    username: ${RABBITMQ_USERNAME:guest}
-    password: ${RABBITMQ_PASSWORD:guest}
-  main:
-    allow-bean-definition-overriding: true
-  cloud:
-    compatibility-verifier:
-      enabled: false
-
-eureka:
-  client:
-    service-url:
-      defaultZone: ${EUREKA_URI:http://localhost:8761/eureka}
-    register-with-eureka: true
-    fetch-registry: true
-
-management:
-  endpoints:
-    web:
-      base-path: /actuator
-      exposure:
-        include: health,info,prometheus
-  endpoint:
-    prometheus:
-      enabled: true
-    health:
-      probes:
-        enabled: true
-  health:
-    probes:
-      enabled: true
-
-springdoc:
-  api-docs:
-    path: /v3/api-docs
-  swagger-ui:
-    path: /swagger-ui.html
-    enabled: true
+  port: ${PAYMENT_SERVICE_PORT:8086}
 
 app:
-  jwt:
-    secret: fGoO74w9ffVJDITF2xDhRRPshvSqjKvpCoAvQqsCHkI=
   rabbitmq:
     stock-exchange: stock.exchange
     payment-exchange: payment.exchange

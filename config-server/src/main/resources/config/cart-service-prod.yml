@@ -1,0 +1,5 @@
+spring:
+  datasource:
+    url: ${CART_DB_URL:${DB_URL}}
+    username: ${CART_DB_USERNAME:${DB_USERNAME}}
+    password: ${CART_DB_PASSWORD:${DB_PASSWORD}}

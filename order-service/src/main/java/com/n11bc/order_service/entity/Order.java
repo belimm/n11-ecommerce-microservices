@@ -64,6 +64,9 @@ public class Order {
     @Column(nullable = false, length = 40)
     private String paymentMethod;
 
+    @Column(name = "status_reason", length = 500)
+    private String statusReason;
+
     @Embedded
     private ShippingAddress shippingAddress;
 

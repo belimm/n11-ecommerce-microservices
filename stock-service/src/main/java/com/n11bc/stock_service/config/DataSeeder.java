@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.IntStream;
 
 @Component
 @RequiredArgsConstructor
@@ -27,26 +28,13 @@ public class DataSeeder implements ApplicationRunner {
     }
 
     private List<InventorySeed> seedInventories() {
-        return List.of(
-                new InventorySeed(1L, 42),
-                new InventorySeed(2L, 55),
-                new InventorySeed(3L, 28),
-                new InventorySeed(4L, 64),
-                new InventorySeed(5L, 120),
-                new InventorySeed(6L, 86),
-                new InventorySeed(7L, 74),
-                new InventorySeed(8L, 38),
-                new InventorySeed(9L, 22),
-                new InventorySeed(10L, 34),
-                new InventorySeed(11L, 47),
-                new InventorySeed(12L, 160),
-                new InventorySeed(13L, 92),
-                new InventorySeed(14L, 180),
-                new InventorySeed(15L, 68),
-                new InventorySeed(16L, 75),
-                new InventorySeed(17L, 44),
-                new InventorySeed(18L, 36)
-        );
+        return IntStream.rangeClosed(1, 120)
+                .mapToObj(productId -> new InventorySeed((long) productId, realisticQuantity(productId)))
+                .toList();
+    }
+
+    private int realisticQuantity(int productId) {
+        return 25 + ((productId * 17) % 176);
     }
 
     private void seedInventory(InventorySeed seed) {

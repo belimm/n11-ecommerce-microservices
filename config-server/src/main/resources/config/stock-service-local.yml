@@ -1,0 +1,9 @@
+spring:
+  datasource:
+    url: ${STOCK_DB_URL:${DB_URL:jdbc:postgresql://localhost:5432/n11bc}}
+    username: ${STOCK_DB_USERNAME:${DB_USERNAME:postgres}}
+    password: ${STOCK_DB_PASSWORD:${DB_PASSWORD:1234}}
+
+app:
+  seed:
+    enabled: ${STOCK_SEED_ENABLED:true}

@@ -54,6 +54,7 @@ public class OrderServiceImpl implements OrderService {
                 .status(OrderStatus.PENDING)
                 .totalPrice(orderMapper.calculateTotal(cart.items()))
                 .paymentMethod(request.normalizedPaymentMethod())
+                .statusReason("Order created; waiting for stock reservation and payment")
                 .shippingAddress(orderMapper.toShippingAddress(address))
                 .build();
         List<OrderItem> items = orderMapper.toOrderItems(cart.items());
@@ -91,6 +92,7 @@ public class OrderServiceImpl implements OrderService {
     public OrderResponse updateStatus(Long orderId, UpdateOrderStatusRequest request) {
         Order order = getExistingOrder(orderId);
         transition(order, request.status());
+        order.setStatusReason("Order status updated to " + request.status());
         Order savedOrder = orderRepository.save(order);
         if (savedOrder.getStatus() == OrderStatus.CANCELLED) {
             eventPublisher.publishOrderCancelled(toOrderCancelledEvent(savedOrder, "Order status updated to CANCELLED"));
@@ -104,6 +106,7 @@ public class OrderServiceImpl implements OrderService {
         Order order = getExistingOrder(orderId);
         assertVisible(order);
         transition(order, OrderStatus.CANCELLED);
+        order.setStatusReason(reasonOrDefault(reason, "Cancelled by customer"));
         Order savedOrder = orderRepository.save(order);
         eventPublisher.publishOrderCancelled(toOrderCancelledEvent(savedOrder, reason));
         return orderMapper.toResponse(savedOrder);
@@ -118,10 +121,15 @@ public class OrderServiceImpl implements OrderService {
             return;
         }
         transition(order, targetStatus);
+        order.setStatusReason(reasonOrDefault(reason, "Saga status updated to " + targetStatus));
         Order savedOrder = orderRepository.save(order);
         if (targetStatus == OrderStatus.CANCELLED) {
             eventPublisher.publishOrderCancelled(toOrderCancelledEvent(savedOrder, reason));
         }
+    }
+
+    private String reasonOrDefault(String reason, String fallback) {
+        return reason == null || reason.isBlank() ? fallback : reason;
     }
 
     private void validateCart(String userId, CartSnapshotResponse cart) {

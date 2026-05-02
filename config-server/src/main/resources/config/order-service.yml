@@ -1,68 +1,11 @@
 server:
-  port: 8086
-
-spring:
-  datasource:
-    url: ${ORDER_DB_URL:jdbc:postgresql://localhost:5432/n11bc}
-    username: ${ORDER_DB_USERNAME:postgres}
-    password: ${ORDER_DB_PASSWORD:1234}
-  jpa:
-    hibernate:
-      ddl-auto: ${ORDER_JPA_DDL_AUTO:update}
-    show-sql: ${ORDER_JPA_SHOW_SQL:true}
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: true
-    open-in-view: false
-  rabbitmq:
-    host: ${RABBITMQ_HOST:localhost}
-    port: ${RABBITMQ_PORT:5672}
-    username: ${RABBITMQ_USERNAME:guest}
-    password: ${RABBITMQ_PASSWORD:guest}
-  main:
-    allow-bean-definition-overriding: true
-  cloud:
-    compatibility-verifier:
-      enabled: false
-
-eureka:
-  client:
-    service-url:
-      defaultZone: ${EUREKA_URI:http://localhost:8761/eureka}
-    register-with-eureka: true
-    fetch-registry: true
-
-management:
-  endpoints:
-    web:
-      base-path: /actuator
-      exposure:
-        include: health,info,prometheus
-  endpoint:
-    prometheus:
-      enabled: true
-    health:
-      probes:
-        enabled: true
-  health:
-    probes:
-      enabled: true
-
-springdoc:
-  api-docs:
-    path: /v3/api-docs
-  swagger-ui:
-    path: /swagger-ui.html
-    enabled: true
+  port: ${ORDER_SERVICE_PORT:8084}
 
 app:
-  jwt:
-    secret: fGoO74w9ffVJDITF2xDhRRPshvSqjKvpCoAvQqsCHkI=
   cart-service:
-    base-url: ${CART_SERVICE_BASE_URL:http://localhost:8085}
+    base-url: ${CART_SERVICE_BASE_URL:http://localhost:8083}
   user-service:
-    base-url: ${USER_SERVICE_BASE_URL:http://localhost:8083}
+    base-url: ${USER_SERVICE_BASE_URL:http://localhost:8081}
   rabbitmq:
     order-exchange: order.exchange
     stock-exchange: stock.exchange

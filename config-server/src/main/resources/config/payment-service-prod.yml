@@ -1,0 +1,5 @@
+spring:
+  datasource:
+    url: ${PAYMENT_DB_URL:${DB_URL}}
+    username: ${PAYMENT_DB_USERNAME:${DB_USERNAME}}
+    password: ${PAYMENT_DB_PASSWORD:${DB_PASSWORD}}
