@@ -3,6 +3,7 @@ package com.n11bc.user_service.service;
 import com.n11bc.user_service.dto.request.SignupRequest;
 import com.n11bc.user_service.dto.request.UpdateUserRequest;
 import com.n11bc.user_service.dto.response.UserResponse;
+import com.n11bc.user_service.entity.Role;
 import com.n11bc.user_service.entity.User;
 import com.n11bc.user_service.exception.UserAlreadyExistsException;
 import com.n11bc.user_service.exception.UserNotFoundException;
@@ -38,6 +39,8 @@ public class UserService {
 
         User user = userMapper.signupRequestToUser(request);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setRole(Role.CUSTOMER);
+        user.setActive(true);
 
         User savedUser = userRepository.save(user);
         log.info("User registered successfully: {}", savedUser.getUsername());

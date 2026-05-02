@@ -98,20 +98,25 @@ class RefreshTokenServiceTest {
     // ---- createOrUpdateRefreshToken ----
 
     @Test
-    @DisplayName("createOrUpdateRefreshToken: mevcut token silinir ve yeni olusturulur")
-    void createOrUpdateRefreshToken_deletesOldAndCreatesNew() {
-        when(refreshTokenRepository.save(any(RefreshToken.class))).thenReturn(validToken);
+    @DisplayName("createOrUpdateRefreshToken: mevcut token varsa ayni kayit guncellenir")
+    void createOrUpdateRefreshToken_updatesExistingToken() {
+        String newToken = "new-refresh-token";
+        when(refreshTokenRepository.findByUser(user)).thenReturn(Optional.of(validToken));
+        when(refreshTokenRepository.save(any(RefreshToken.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        RefreshToken result = refreshTokenService.createOrUpdateRefreshToken(user, TOKEN_VALUE);
+        RefreshToken result = refreshTokenService.createOrUpdateRefreshToken(user, newToken);
 
-        verify(refreshTokenRepository).deleteByUser(user);
-        verify(refreshTokenRepository).save(any(RefreshToken.class));
-        assertThat(result).isNotNull();
+        verify(refreshTokenRepository, never()).deleteByUser(user);
+        verify(refreshTokenRepository).save(validToken);
+        assertThat(result.getId()).isEqualTo("token-id-1");
+        assertThat(result.getToken()).isEqualTo(newToken);
+        assertThat(result.isRevoked()).isFalse();
     }
 
     @Test
     @DisplayName("createOrUpdateRefreshToken: expiry date gelecekte olacak sekilde ayarlanir")
     void createOrUpdateRefreshToken_expiryDateInFuture() {
+        when(refreshTokenRepository.findByUser(user)).thenReturn(Optional.empty());
         when(refreshTokenRepository.save(any(RefreshToken.class))).thenAnswer(inv -> inv.getArgument(0));
 
         Instant before = Instant.now();

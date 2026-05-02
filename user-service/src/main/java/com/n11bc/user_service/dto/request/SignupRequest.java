@@ -1,6 +1,8 @@
 package com.n11bc.user_service.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.n11bc.user_service.entity.Role;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -31,5 +33,7 @@ public class SignupRequest {
 
     private String phoneNumber;
 
-    private Role role = Role.CUSTOMER;  // Default role
+    @JsonIgnore
+    @Schema(hidden = true)
+    private Role role = Role.CUSTOMER;
 }

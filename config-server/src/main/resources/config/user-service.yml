@@ -5,9 +5,9 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/n11bc
-    username: postgres
-    password: "1234"
+    url: ${SUPABASE_DB_URL:jdbc:postgresql://localhost:5432/n11bc}
+    username: ${SUPABASE_USER:postgres}
+    password: ${SUPABASE_PASSWORD:1234}
   jpa:
     hibernate:
       ddl-auto: update
@@ -17,17 +17,13 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
     open-in-view: false
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: http://localhost:8080/realms/microservice-realm
-          jwk-set-uri: http://localhost:8080/realms/microservice-realm/protocol/openid-connect/certs
   main:
     allow-bean-definition-overriding: true
   cloud:
     compatibility-verifier:
       enabled: false
+
+
 
 eureka:
   client:
@@ -43,15 +39,10 @@ management:
       exposure:
         include: "*"
 
-keycloak:
-  token-uri: http://localhost:8080/realms/microservice-realm/protocol/openid-connect/token
-  client-id: user-service
-  client-secret: wisI6vNCYA1dZFezCkRgWeRjNHPlWdY8
-  grant-type-password: password
-  grant-type-refresh: refresh_token
-  scope: openid offline_access
-
 app:
+  jwt:
+    secret: fGoO74w9ffVJDITF2xDhRRPshvSqjKvpCoAvQqsCHkI=
+    expiration-ms: 86400000
   refresh-token:
     expiration-ms: 604800000
 
@@ -63,9 +54,8 @@ feign:
         readTimeout: 5000
         loggerLevel: basic
 
-
 springdoc:
   api-docs:
     path: /v3/api-docs
   swagger-ui:
-    enabled: false  # her serviste UI'a gerek yok, sadece spec yeterli
+    enabled: false

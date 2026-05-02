@@ -16,8 +16,8 @@ public interface UserMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "role", ignore = true)
     @Mapping(target = "active", ignore = true)
-    @Mapping(target = "emailVerified", ignore = true)
     @Mapping(target = "addresses", ignore = true)
     User signupRequestToUser(SignupRequest request);
 
@@ -32,7 +32,6 @@ public interface UserMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "active", ignore = true)
-    @Mapping(target = "emailVerified", ignore = true)
     @Mapping(target = "addresses", ignore = true)
     void updateUserFromRequest(UpdateUserRequest request, @MappingTarget User user);
 }

@@ -76,12 +76,6 @@
 			<version>${mapstruct.version}</version>
 		</dependency>
 
-		<!-- Apache HttpClient 5 for Keycloak communication -->
-		<dependency>
-			<groupId>org.apache.httpcomponents.client5</groupId>
-			<artifactId>httpclient5</artifactId>
-		</dependency>
-
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>

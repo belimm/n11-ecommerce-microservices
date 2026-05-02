@@ -29,18 +29,23 @@ public class RefreshTokenService {
     }
 
     @Transactional
-    public RefreshToken createOrUpdateRefreshToken(User user, String keycloakRefreshToken) {
-        refreshTokenRepository.deleteByUser(user);
+    public RefreshToken createOrUpdateRefreshToken(User user, String refreshTokenValue) {
+        Instant now = Instant.now();
 
-        RefreshToken refreshToken = RefreshToken.builder()
-                .user(user)
-                .token(keycloakRefreshToken)
-                .expiryDate(Instant.now().plusMillis(refreshTokenDurationMs))
-                .createdAt(Instant.now())
-                .revoked(false)
-                .build();
-
-        return refreshTokenRepository.save(refreshToken);
+        return refreshTokenRepository.findByUser(user)
+                .map(existingToken -> {
+                    existingToken.setToken(refreshTokenValue);
+                    existingToken.setExpiryDate(now.plusMillis(refreshTokenDurationMs));
+                    existingToken.setRevoked(false);
+                    return refreshTokenRepository.save(existingToken);
+                })
+                .orElseGet(() -> refreshTokenRepository.save(RefreshToken.builder()
+                        .user(user)
+                        .token(refreshTokenValue)
+                        .expiryDate(now.plusMillis(refreshTokenDurationMs))
+                        .createdAt(now)
+                        .revoked(false)
+                        .build()));
     }
 
     public RefreshToken verifyExpiration(RefreshToken token) {

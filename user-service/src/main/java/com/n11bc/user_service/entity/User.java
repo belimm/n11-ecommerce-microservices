@@ -54,8 +54,8 @@ public class User {
     private List<Address> addresses = new ArrayList<>();
 
     // Account status
+    @Builder.Default
     private boolean active = true;
-    private boolean emailVerified = false;
 
     // Audit fields
     @CreatedDate

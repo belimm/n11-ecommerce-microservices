@@ -3,7 +3,6 @@ package com.n11bc.user_service.service;
 import com.n11bc.user_service.dto.request.LoginRequest;
 import com.n11bc.user_service.dto.request.RefreshTokenRequest;
 import com.n11bc.user_service.dto.response.JwtResponse;
-import com.n11bc.user_service.dto.response.KeycloakTokenResponse;
 import com.n11bc.user_service.entity.RefreshToken;
 import com.n11bc.user_service.entity.Role;
 import com.n11bc.user_service.entity.User;
@@ -16,6 +15,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
 
 import java.time.Instant;
 import java.util.Optional;
@@ -33,17 +35,19 @@ class AuthServiceTest {
     private UserService userService;
 
     @Mock
-    private KeycloakAuthService keycloakAuthService;
+    private RefreshTokenService refreshTokenService;
 
     @Mock
-    private RefreshTokenService refreshTokenService;
+    private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private JwtEncoder jwtEncoder;
 
     @InjectMocks
     private AuthService authService;
 
     private User activeUser;
     private User inactiveUser;
-    private KeycloakTokenResponse keycloakResponse;
     private RefreshToken refreshToken;
 
     private static final String ACCESS_TOKEN = "access-token-xyz";
@@ -69,13 +73,6 @@ class AuthServiceTest {
                 .active(false)
                 .build();
 
-        keycloakResponse = KeycloakTokenResponse.builder()
-                .accessToken(ACCESS_TOKEN)
-                .refreshToken(REFRESH_TOKEN_STR)
-                .tokenType("Bearer")
-                .expiresIn(300)
-                .build();
-
         refreshToken = RefreshToken.builder()
                 .id("token-id-1")
                 .token(REFRESH_TOKEN_STR)
@@ -85,6 +82,12 @@ class AuthServiceTest {
                 .build();
     }
 
+    private Jwt mockJwtWithToken(String tokenValue) {
+        Jwt jwt = mock(Jwt.class);
+        when(jwt.getTokenValue()).thenReturn(tokenValue);
+        return jwt;
+    }
+
     // ---- authenticateUser ----
 
     @Test
@@ -92,15 +95,14 @@ class AuthServiceTest {
     void authenticateUser_success() {
         LoginRequest request = new LoginRequest("testuser", "password123");
         when(userService.findByUsernameOrEmail("testuser")).thenReturn(activeUser);
-        when(userService.verifyPassword(activeUser, "password123")).thenReturn(true);
-        when(keycloakAuthService.authenticate("testuser", "password123")).thenReturn(keycloakResponse);
+        when(passwordEncoder.matches("password123", "encoded-password")).thenReturn(true);
+        when(jwtEncoder.encode(any())).thenReturn(mockJwtWithToken(ACCESS_TOKEN));
         when(refreshTokenService.createOrUpdateRefreshToken(any(User.class), anyString())).thenReturn(refreshToken);
 
         JwtResponse result = authService.authenticateUser(request);
 
         assertThat(result).isNotNull();
         assertThat(result.getAccessToken()).isEqualTo(ACCESS_TOKEN);
-        assertThat(result.getRefreshToken()).isEqualTo(REFRESH_TOKEN_STR);
         assertThat(result.getUsername()).isEqualTo("testuser");
         assertThat(result.getRole()).isEqualTo(Role.CUSTOMER);
     }
@@ -115,7 +117,7 @@ class AuthServiceTest {
                 .isInstanceOf(AuthenticationException.class)
                 .hasMessageContaining("deactivated");
 
-        verify(keycloakAuthService, never()).authenticate(anyString(), anyString());
+        verify(passwordEncoder, never()).matches(anyString(), anyString());
     }
 
     @Test
@@ -123,17 +125,17 @@ class AuthServiceTest {
     void authenticateUser_wrongPassword() {
         LoginRequest request = new LoginRequest("testuser", "wrongpassword");
         when(userService.findByUsernameOrEmail("testuser")).thenReturn(activeUser);
-        when(userService.verifyPassword(activeUser, "wrongpassword")).thenReturn(false);
+        when(passwordEncoder.matches("wrongpassword", "encoded-password")).thenReturn(false);
 
         assertThatThrownBy(() -> authService.authenticateUser(request))
                 .isInstanceOf(AuthenticationException.class)
                 .hasMessageContaining("Invalid username or password");
 
-        verify(keycloakAuthService, never()).authenticate(anyString(), anyString());
+        verify(jwtEncoder, never()).encode(any());
     }
 
     @Test
-    @DisplayName("authenticateUser: kullanici bulunamadi - UserService exception fırlatır")
+    @DisplayName("authenticateUser: kullanici bulunamadi")
     void authenticateUser_userNotFound() {
         LoginRequest request = new LoginRequest("nonexistent", "password123");
         when(userService.findByUsernameOrEmail("nonexistent"))
@@ -151,33 +153,13 @@ class AuthServiceTest {
         RefreshTokenRequest request = new RefreshTokenRequest(REFRESH_TOKEN_STR);
         when(refreshTokenService.findByToken(REFRESH_TOKEN_STR)).thenReturn(Optional.of(refreshToken));
         when(refreshTokenService.verifyExpiration(refreshToken)).thenReturn(refreshToken);
-        when(keycloakAuthService.refreshToken(REFRESH_TOKEN_STR)).thenReturn(keycloakResponse);
+        when(jwtEncoder.encode(any())).thenReturn(mockJwtWithToken(ACCESS_TOKEN));
 
         JwtResponse result = authService.refreshAccessToken(request);
 
         assertThat(result).isNotNull();
         assertThat(result.getAccessToken()).isEqualTo(ACCESS_TOKEN);
-        verify(refreshTokenService, never()).updateRefreshToken(any(), any());
-    }
-
-    @Test
-    @DisplayName("refreshAccessToken: Keycloak yeni refresh token dondurunce guncellenir")
-    void refreshAccessToken_newRefreshToken_updatesDb() {
-        String newRefreshToken = "new-refresh-token-xyz";
-        KeycloakTokenResponse responseWithNewToken = KeycloakTokenResponse.builder()
-                .accessToken(ACCESS_TOKEN)
-                .refreshToken(newRefreshToken)
-                .tokenType("Bearer")
-                .build();
-
-        RefreshTokenRequest request = new RefreshTokenRequest(REFRESH_TOKEN_STR);
-        when(refreshTokenService.findByToken(REFRESH_TOKEN_STR)).thenReturn(Optional.of(refreshToken));
-        when(refreshTokenService.verifyExpiration(refreshToken)).thenReturn(refreshToken);
-        when(keycloakAuthService.refreshToken(REFRESH_TOKEN_STR)).thenReturn(responseWithNewToken);
-
-        authService.refreshAccessToken(request);
-
-        verify(refreshTokenService).updateRefreshToken(refreshToken, newRefreshToken);
+        verify(refreshTokenService).updateRefreshToken(eq(refreshToken), anyString());
     }
 
     @Test
@@ -207,7 +189,7 @@ class AuthServiceTest {
     @Test
     @DisplayName("refreshAccessToken: token'a ait kullanici pasif edilmis")
     void refreshAccessToken_userInactive() {
-        refreshToken = RefreshToken.builder()
+        RefreshToken inactiveToken = RefreshToken.builder()
                 .id("token-id-2")
                 .token(REFRESH_TOKEN_STR)
                 .user(inactiveUser)
@@ -216,14 +198,12 @@ class AuthServiceTest {
                 .build();
 
         RefreshTokenRequest request = new RefreshTokenRequest(REFRESH_TOKEN_STR);
-        when(refreshTokenService.findByToken(REFRESH_TOKEN_STR)).thenReturn(Optional.of(refreshToken));
-        when(refreshTokenService.verifyExpiration(refreshToken)).thenReturn(refreshToken);
+        when(refreshTokenService.findByToken(REFRESH_TOKEN_STR)).thenReturn(Optional.of(inactiveToken));
+        when(refreshTokenService.verifyExpiration(inactiveToken)).thenReturn(inactiveToken);
 
         assertThatThrownBy(() -> authService.refreshAccessToken(request))
                 .isInstanceOf(AuthenticationException.class)
                 .hasMessageContaining("deactivated");
-
-        verify(keycloakAuthService, never()).refreshToken(anyString());
     }
 
     // ---- logout ----

@@ -15,12 +15,6 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
     open-in-view: false
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/realms/microservice-realm}
-          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://localhost:8080/realms/microservice-realm/protocol/openid-connect/certs}
   main:
     allow-bean-definition-overriding: true
   cloud:
@@ -58,6 +52,8 @@ springdoc:
     enabled: true
 
 app:
+  jwt:
+    secret: fGoO74w9ffVJDITF2xDhRRPshvSqjKvpCoAvQqsCHkI=
   seed:
     enabled: ${PRODUCT_SEED_ENABLED:true}
   observability:
