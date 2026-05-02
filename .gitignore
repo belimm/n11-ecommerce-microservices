@@ -6,8 +6,10 @@ target/
 */target/
 
 .env
+.env.*
 *.env
 !.env.example
+!.env.production.example
 
 logs/
 *.log

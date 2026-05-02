@@ -29,9 +29,14 @@
 	<properties>
 		<java.version>21</java.version>
 		<spring-cloud.version>2025.0.2</spring-cloud.version>
+		<jib.version>3.4.4</jib.version>
 		<mapstruct.version>1.6.3</mapstruct.version>
 	</properties>
 	<dependencies>
+		<dependency>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-registry-prometheus</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
@@ -184,6 +189,25 @@
 						</configuration>
 					</execution>
 				</executions>
+			</plugin>
+			<plugin>
+				<groupId>com.google.cloud.tools</groupId>
+				<artifactId>jib-maven-plugin</artifactId>
+				<version>${jib.version}</version>
+				<configuration>
+					<from>
+						<image>eclipse-temurin:21-jre</image>
+					</from>
+					<to>
+						<image>${env.DOCKERHUB_USERNAME}/user-service:${project.version}</image>
+					</to>
+					<container>
+						<ports>
+							<port>8081</port>
+						</ports>
+						<creationTime>USE_CURRENT_TIMESTAMP</creationTime>
+					</container>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
