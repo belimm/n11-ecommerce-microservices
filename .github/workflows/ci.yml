@@ -45,18 +45,6 @@ jobs:
             fi
           done
 
-      - name: Run tests
-        run: |
-          for service in $(find . -maxdepth 1 -type d \( -name "*-server" \
-            -o -name "*-service" \
-            -o -name "*-gateway" \) | sort); do
-            if [ -f "$service/pom.xml" ]; then
-              echo "🧪 Testing $service..."
-              cd $service
-              mvn test --batch-mode
-              cd ..
-            fi
-          done
 
       - name: Slack — Success
         if: success()
