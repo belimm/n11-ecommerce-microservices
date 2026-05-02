@@ -86,6 +86,7 @@ class PaymentServiceImplTest {
                 "ORD-ABC",
                 "user-1",
                 new BigDecimal("200.00"),
+                null,
                 List.of(new StockReservedEvent.StockReservedItem(10L, "Organic Tea", 2, new BigDecimal("100.00"), new BigDecimal("200.00"))),
                 LocalDateTime.now()
         );

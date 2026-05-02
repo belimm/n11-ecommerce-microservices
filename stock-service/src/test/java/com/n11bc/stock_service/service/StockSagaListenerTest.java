@@ -37,7 +37,7 @@ class StockSagaListenerTest {
     @DisplayName("onOrderCreated publishes reserved event on successful reservation")
     void onOrderCreated_success() {
         OrderCreatedEvent orderCreated = orderCreatedEvent();
-        StockReservedEvent reserved = new StockReservedEvent(orderCreated.orderId(), orderCreated.orderNumber(), orderCreated.userId(), orderCreated.totalPrice(), List.of(), LocalDateTime.now());
+        StockReservedEvent reserved = new StockReservedEvent(orderCreated.orderId(), orderCreated.orderNumber(), orderCreated.userId(), orderCreated.totalPrice(), null, List.of(), LocalDateTime.now());
         when(inventoryService.reserveStock(orderCreated)).thenReturn(reserved);
 
         listener.onOrderCreated(orderCreated);
@@ -77,6 +77,7 @@ class StockSagaListenerTest {
                 "ORD-ABC",
                 "user-1",
                 new BigDecimal("200.00"),
+                null,
                 List.of(new OrderCreatedEvent.OrderCreatedItem(10L, "Organic Tea", 2, new BigDecimal("100.00"), new BigDecimal("200.00"))),
                 LocalDateTime.now()
         );

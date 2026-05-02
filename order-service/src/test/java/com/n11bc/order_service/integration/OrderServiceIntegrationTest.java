@@ -101,7 +101,7 @@ class OrderServiceIntegrationTest {
 
 
     private CreateOrderRequest createRequest() {
-        return new CreateOrderRequest("addr-1", "IYZICO");
+        return new CreateOrderRequest("addr-1", "IYZICO", null);
     }
 
     private UserAddressResponse addressResponse() {

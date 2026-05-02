@@ -161,6 +161,7 @@ class InventoryServiceImplTest {
                 "ORD-ABC",
                 "user-1",
                 new BigDecimal("200.00"),
+                null,
                 List.of(new OrderCreatedEvent.OrderCreatedItem(
                         10L,
                         "Organic Tea",

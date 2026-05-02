@@ -12,9 +12,20 @@ public record StockReservedEvent(
         String orderNumber,
         String userId,
         BigDecimal totalPrice,
+        PaymentCard paymentCard,
         List<StockReservedItem> items,
         LocalDateTime reservedAt
 ) {
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record PaymentCard(
+            String cardHolderName,
+            String cardNumber,
+            String expireMonth,
+            String expireYear,
+            String cvc
+    ) {
+    }
+
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record StockReservedItem(
             Long productId,

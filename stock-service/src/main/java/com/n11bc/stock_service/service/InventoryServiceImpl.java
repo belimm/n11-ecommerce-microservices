@@ -156,7 +156,20 @@ public class InventoryServiceImpl implements InventoryService {
         List<StockReservedEvent.StockReservedItem> items = reservations.stream()
                 .map(reservation -> toStockReservedItem(reservation, originalItems.get(reservation.getProductId())))
                 .toList();
-        return new StockReservedEvent(event.orderId(), event.orderNumber(), event.userId(), event.totalPrice(), items, LocalDateTime.now());
+        return new StockReservedEvent(event.orderId(), event.orderNumber(), event.userId(), event.totalPrice(), toStockReservedPaymentCard(event.paymentCard()), items, LocalDateTime.now());
+    }
+
+    private StockReservedEvent.PaymentCard toStockReservedPaymentCard(OrderCreatedEvent.PaymentCard paymentCard) {
+        if (paymentCard == null) {
+            return null;
+        }
+        return new StockReservedEvent.PaymentCard(
+                paymentCard.cardHolderName(),
+                paymentCard.cardNumber(),
+                paymentCard.expireMonth(),
+                paymentCard.expireYear(),
+                paymentCard.cvc()
+        );
     }
 
     private StockReservedEvent.StockReservedItem toStockReservedItem(StockReservation reservation, OrderCreatedEvent.OrderCreatedItem originalItem) {

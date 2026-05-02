@@ -9,9 +9,19 @@ public record StockReservedEvent(
         String orderNumber,
         String userId,
         BigDecimal totalPrice,
+        PaymentCard paymentCard,
         List<StockReservedItem> items,
         LocalDateTime reservedAt
 ) {
+    public record PaymentCard(
+            String cardHolderName,
+            String cardNumber,
+            String expireMonth,
+            String expireYear,
+            String cvc
+    ) {
+    }
+
     public record StockReservedItem(
             Long productId,
             String productName,

@@ -66,7 +66,7 @@ public class IyzicoPaymentClient {
         request.put("basketId", payment.getOrderNumber());
         request.put("paymentChannel", properties.paymentChannel());
         request.put("installment", properties.installment());
-        request.put("paymentCard", paymentCard());
+        request.put("paymentCard", paymentCard(event));
         request.put("buyer", buyer(event.userId()));
         request.put("shippingAddress", address());
         request.put("billingAddress", address());
@@ -74,7 +74,19 @@ public class IyzicoPaymentClient {
         return request;
     }
 
-    private Map<String, Object> paymentCard() {
+    private Map<String, Object> paymentCard(StockReservedEvent event) {
+        StockReservedEvent.PaymentCard eventCard = event.paymentCard();
+        if (eventCard != null) {
+            return Map.of(
+                    "cardHolderName", eventCard.cardHolderName(),
+                    "cardNumber", eventCard.cardNumber(),
+                    "expireYear", eventCard.expireYear(),
+                    "expireMonth", eventCard.expireMonth(),
+                    "cvc", eventCard.cvc(),
+                    "registerCard", 0
+            );
+        }
+
         IyzicoProperties.SandboxCard card = properties.sandboxCard();
         return Map.of(
                 "cardHolderName", card.cardHolderName(),

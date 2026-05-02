@@ -60,7 +60,7 @@ public class OrderServiceImpl implements OrderService {
         order.replaceItems(items);
 
         Order savedOrder = orderRepository.save(order);
-        eventPublisher.publishOrderCreated(toOrderCreatedEvent(savedOrder));
+        eventPublisher.publishOrderCreated(toOrderCreatedEvent(savedOrder, request));
         log.info("Order {} created for user {}", savedOrder.getId(), userId);
         return orderMapper.toResponse(savedOrder);
     }
@@ -159,7 +159,7 @@ public class OrderServiceImpl implements OrderService {
         return orderNumber;
     }
 
-    private OrderCreatedEvent toOrderCreatedEvent(Order order) {
+    private OrderCreatedEvent toOrderCreatedEvent(Order order, CreateOrderRequest request) {
         List<OrderCreatedEvent.OrderCreatedItem> items = order.getItems().stream()
                 .map(item -> new OrderCreatedEvent.OrderCreatedItem(
                         item.getProductId(),
@@ -173,8 +173,22 @@ public class OrderServiceImpl implements OrderService {
                 order.getOrderNumber(),
                 order.getUserId(),
                 order.getTotalPrice(),
+                toPaymentCard(request),
                 items,
                 LocalDateTime.now()
+        );
+    }
+
+    private OrderCreatedEvent.PaymentCard toPaymentCard(CreateOrderRequest request) {
+        if (request.paymentCard() == null) {
+            return null;
+        }
+        return new OrderCreatedEvent.PaymentCard(
+                request.paymentCard().cardHolderName(),
+                request.paymentCard().cardNumber(),
+                request.paymentCard().expireMonth(),
+                request.paymentCard().expireYear(),
+                request.paymentCard().cvc()
         );
     }
 
