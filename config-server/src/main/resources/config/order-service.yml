@@ -66,6 +66,7 @@ app:
   rabbitmq:
     order-exchange: order.exchange
     stock-exchange: stock.exchange
+    payment-exchange: payment.exchange
     order-created-queue: order.created.queue
     order-created-routing-key: order.created
     order-cancelled-queue: order.cancelled.queue
@@ -74,3 +75,5 @@ app:
     stock-failed-routing-key: stock.failed
     stock-released-queue: stock.released.queue
     stock-released-routing-key: stock.released
+    payment-success-queue: payment.success.queue
+    payment-success-routing-key: payment.success

@@ -24,6 +24,11 @@ public class RabbitMqConfig {
     }
 
     @Bean
+    public TopicExchange paymentExchange(@Value("${app.rabbitmq.payment-exchange}") String exchangeName) {
+        return new TopicExchange(exchangeName, true, false);
+    }
+
+    @Bean
     public Queue orderCreatedQueue(@Value("${app.rabbitmq.order-created-queue}") String queueName) {
         return new Queue(queueName, true);
     }
@@ -35,6 +40,11 @@ public class RabbitMqConfig {
 
     @Bean
     public Queue stockFailedQueue(@Value("${app.rabbitmq.stock-failed-queue}") String queueName) {
+        return new Queue(queueName, true);
+    }
+
+    @Bean
+    public Queue paymentSuccessQueue(@Value("${app.rabbitmq.payment-success-queue}") String queueName) {
         return new Queue(queueName, true);
     }
 
@@ -68,6 +78,15 @@ public class RabbitMqConfig {
             @Value("${app.rabbitmq.stock-failed-routing-key}") String routingKey
     ) {
         return BindingBuilder.bind(stockFailedQueue).to(stockExchange).with(routingKey);
+    }
+
+    @Bean
+    public Binding paymentSuccessBinding(
+            Queue paymentSuccessQueue,
+            TopicExchange paymentExchange,
+            @Value("${app.rabbitmq.payment-success-routing-key}") String routingKey
+    ) {
+        return BindingBuilder.bind(paymentSuccessQueue).to(paymentExchange).with(routingKey);
     }
 
     @Bean

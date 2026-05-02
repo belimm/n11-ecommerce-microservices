@@ -1,6 +1,7 @@
 package com.n11bc.order_service.service;
 
 import com.n11bc.order_service.entity.OrderStatus;
+import com.n11bc.order_service.event.PaymentSuccessEvent;
 import com.n11bc.order_service.event.StockFailedEvent;
 import com.n11bc.order_service.event.StockReleasedEvent;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +15,13 @@ import org.springframework.stereotype.Component;
 public class OrderSagaListener {
 
     private final OrderService orderService;
+
+
+    @RabbitListener(queues = "${app.rabbitmq.payment-success-queue}")
+    public void onPaymentSuccess(PaymentSuccessEvent event) {
+        log.info("PaymentSuccessEvent received for order {}", event.orderId());
+        orderService.applySagaStatus(event.orderId(), OrderStatus.CONFIRMED, "Payment completed successfully");
+    }
 
     @RabbitListener(queues = "${app.rabbitmq.stock-failed-queue}")
     public void onStockFailed(StockFailedEvent event) {
