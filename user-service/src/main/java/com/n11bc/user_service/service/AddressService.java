@@ -48,6 +48,7 @@ public class AddressService {
         return addressMapper.addressToAddressResponse(savedAddress);
     }
 
+    @Transactional(readOnly = true)
     public List<AddressResponse> getAddressesByUserId(String userId) {
         if (!userRepository.existsById(userId)) {
             throw new UserNotFoundException(userId, "id");
@@ -58,6 +59,7 @@ public class AddressService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public AddressResponse getAddressById(String userId, String addressId) {
         Address address = addressRepository.findByUserIdAndId(userId, addressId)
                 .orElseThrow(() -> new AddressNotFoundException(addressId));
@@ -65,6 +67,7 @@ public class AddressService {
         return addressMapper.addressToAddressResponse(address);
     }
 
+    @Transactional(readOnly = true)
     public AddressResponse getDefaultAddress(String userId) {
         Address address = addressRepository.findByUserIdAndDefaultAddressTrue(userId)
                 .orElseThrow(() -> new AddressNotFoundException("No default address found for user"));

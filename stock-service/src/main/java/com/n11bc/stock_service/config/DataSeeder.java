@@ -28,18 +28,24 @@ public class DataSeeder implements ApplicationRunner {
 
     private List<InventorySeed> seedInventories() {
         return List.of(
-                new InventorySeed(1L, 120),
-                new InventorySeed(2L, 95),
-                new InventorySeed(3L, 80),
-                new InventorySeed(4L, 70),
-                new InventorySeed(5L, 140),
-                new InventorySeed(6L, 110),
-                new InventorySeed(7L, 45),
-                new InventorySeed(8L, 55),
-                new InventorySeed(9L, 38),
-                new InventorySeed(10L, 130),
-                new InventorySeed(11L, 75),
-                new InventorySeed(12L, 90)
+                new InventorySeed(1L, 42),
+                new InventorySeed(2L, 55),
+                new InventorySeed(3L, 28),
+                new InventorySeed(4L, 64),
+                new InventorySeed(5L, 120),
+                new InventorySeed(6L, 86),
+                new InventorySeed(7L, 74),
+                new InventorySeed(8L, 38),
+                new InventorySeed(9L, 22),
+                new InventorySeed(10L, 34),
+                new InventorySeed(11L, 47),
+                new InventorySeed(12L, 160),
+                new InventorySeed(13L, 92),
+                new InventorySeed(14L, 180),
+                new InventorySeed(15L, 68),
+                new InventorySeed(16L, 75),
+                new InventorySeed(17L, 44),
+                new InventorySeed(18L, 36)
         );
     }
 

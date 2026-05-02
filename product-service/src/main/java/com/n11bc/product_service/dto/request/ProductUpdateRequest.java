@@ -10,29 +10,29 @@ import java.util.List;
 
 @Schema(description = "Product update request. Null fields are ignored.")
 public record ProductUpdateRequest(
-        @Schema(example = "Cold-Pressed Olive Oil")
+        @Schema(example = "Samsung Galaxy S24 Ultra 256 GB")
         @Size(max = 180, message = "Product name must be at most 180 characters")
         String name,
 
-        @Schema(example = "cold-pressed-olive-oil")
+        @Schema(example = "galaxy-s24-ultra-256gb")
         @Size(max = 200, message = "Product slug must be at most 200 characters")
         String slug,
 
-        @Schema(example = "Single-origin extra virgin olive oil with a bright, grassy finish.")
+        @Schema(example = "Titanium frame smartphone with AI camera tools and S Pen support.")
         String description,
 
-        @Schema(example = "249.90")
+        @Schema(example = "64999.00")
         @DecimalMin(value = "0.01", message = "Price must be greater than zero")
         BigDecimal price,
 
-        @Schema(example = "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5")
+        @Schema(example = "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf")
         @Size(max = 1000, message = "Image URL must be at most 1000 characters")
         String imageUrl,
 
         @Schema(example = "true")
         Boolean active,
 
-        @Schema(example = "herbal-pantry")
+        @Schema(example = "electronics")
         String categorySlug,
 
         @Valid

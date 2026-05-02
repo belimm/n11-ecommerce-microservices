@@ -22,6 +22,7 @@ public interface UserMapper {
     User signupRequestToUser(SignupRequest request);
 
     // User entity to UserResponse
+    @Mapping(target = "addresses", ignore = true)
     UserResponse userToUserResponse(User user);
 
     // UpdateUserRequest to User entity (for partial updates)
