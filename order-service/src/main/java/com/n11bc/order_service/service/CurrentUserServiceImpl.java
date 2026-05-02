@@ -13,7 +13,8 @@ public class CurrentUserServiceImpl implements CurrentUserService {
     public String getCurrentUserId() {
         Authentication authentication = currentAuthentication();
         if (authentication instanceof JwtAuthenticationToken jwtAuthentication) {
-            return jwtAuthentication.getToken().getSubject();
+            String userId = jwtAuthentication.getToken().getClaimAsString("userId");
+            return userId == null || userId.isBlank() ? jwtAuthentication.getToken().getSubject() : userId;
         }
         return authentication.getName();
     }

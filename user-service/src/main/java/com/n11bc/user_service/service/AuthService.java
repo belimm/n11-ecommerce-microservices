@@ -88,10 +88,11 @@ public class AuthService {
         Instant now = Instant.now();
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer("n11-user-service")
-                .subject(user.getUsername())
+                .subject(user.getId())
                 .issuedAt(now)
                 .expiresAt(now.plusMillis(jwtExpirationMs))
                 .claim("userId", user.getId())
+                .claim("username", user.getUsername())
                 .claim("email", user.getEmail())
                 .claim("roles", List.of(user.getRole().name()))
                 .build();

@@ -59,6 +59,8 @@ springdoc:
 app:
   jwt:
     secret: fGoO74w9ffVJDITF2xDhRRPshvSqjKvpCoAvQqsCHkI=
+  seed:
+    enabled: ${STOCK_SEED_ENABLED:true}
   rabbitmq:
     order-exchange: order.exchange
     stock-exchange: stock.exchange

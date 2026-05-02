@@ -177,7 +177,8 @@ public class PaymentServiceImpl implements PaymentService {
         if (authentication == null || !(authentication.getPrincipal() instanceof Jwt jwt)) {
             throw new AccessDeniedException("Authentication is required");
         }
-        return jwt.getSubject();
+        String userId = jwt.getClaimAsString("userId");
+        return userId == null || userId.isBlank() ? jwt.getSubject() : userId;
     }
 
     private boolean isAdmin() {
