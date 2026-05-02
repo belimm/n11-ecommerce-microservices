@@ -1,9 +1,12 @@
 package com.n11bc.user_service.service;
 
+import com.n11bc.user_service.dto.request.ChangePasswordRequest;
 import com.n11bc.user_service.dto.request.SignupRequest;
 import com.n11bc.user_service.dto.request.UpdateUserRequest;
 import com.n11bc.user_service.dto.response.UserResponse;
+import com.n11bc.user_service.entity.Role;
 import com.n11bc.user_service.entity.User;
+import com.n11bc.user_service.exception.InvalidPasswordException;
 import com.n11bc.user_service.exception.UserAlreadyExistsException;
 import com.n11bc.user_service.exception.UserNotFoundException;
 import com.n11bc.user_service.mapper.UserMapper;
@@ -38,6 +41,8 @@ public class UserService {
 
         User user = userMapper.signupRequestToUser(request);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setRole(Role.CUSTOMER);
+        user.setActive(true);
 
         User savedUser = userRepository.save(user);
         log.info("User registered successfully: {}", savedUser.getUsername());
@@ -60,12 +65,14 @@ public class UserService {
                 .orElseThrow(() -> new UserNotFoundException("User not found with username or email: " + usernameOrEmail));
     }
 
+    @Transactional(readOnly = true)
     public UserResponse getUserById(String id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(id, "id"));
         return userMapper.userToUserResponse(user);
     }
 
+    @Transactional(readOnly = true)
     public List<UserResponse> getAllUsers() {
         return userRepository.findAll().stream()
                 .map(userMapper::userToUserResponse)
@@ -89,6 +96,21 @@ public class UserService {
         log.info("User updated successfully: {}", updatedUser.getUsername());
 
         return userMapper.userToUserResponse(updatedUser);
+    }
+
+
+    @Transactional
+    public void changePassword(String id, ChangePasswordRequest request) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id, "id"));
+
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            throw new InvalidPasswordException("Current password is incorrect");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+        log.info("Password changed successfully for user: {}", user.getUsername());
     }
 
     @Transactional

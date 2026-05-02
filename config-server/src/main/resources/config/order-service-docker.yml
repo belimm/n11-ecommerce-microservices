@@ -1,0 +1,5 @@
+app:
+  cart-service:
+    base-url: ${CART_SERVICE_BASE_URL:http://cart-service:8083}
+  user-service:
+    base-url: ${USER_SERVICE_BASE_URL:http://user-service:8081}

@@ -1,0 +1,3 @@
+app:
+  product-service:
+    base-url: ${PRODUCT_SERVICE_BASE_URL:http://product-service:8082}

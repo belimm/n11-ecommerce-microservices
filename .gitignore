@@ -6,10 +6,14 @@ target/
 */target/
 
 .env
+.env.*
 *.env
 !.env.example
+!.env.production.example
 
 logs/
 *.log
+
+n11-ecommerce-fe/
 
 .mvn/wrapper/maven-wrapper.jar

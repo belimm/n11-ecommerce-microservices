@@ -2,21 +2,30 @@ spring:
   application:
     name: config-server
   profiles:
-    active: local
+    active: ${SPRING_PROFILES_ACTIVE:local}
     include: native
   cloud:
+    config:
+      server:
+        native:
+          search-locations: classpath:/config
     compatibility-verifier:
       enabled: false
 
 server:
-  port: 8762
+  port: ${CONFIG_SERVER_PORT:8762}
 
 management:
   endpoints:
     web:
       exposure:
-        include: "*"
-
-eureka:
-  instance:
-    hostname: config-server
+        include: health,info,prometheus
+  endpoint:
+    prometheus:
+      enabled: true
+    health:
+      probes:
+        enabled: true
+  health:
+    probes:
+      enabled: true

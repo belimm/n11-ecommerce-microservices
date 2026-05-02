@@ -22,7 +22,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 @Configuration
 @EnableWebSecurity
@@ -63,7 +62,7 @@ public class SecurityConfig {
                 "http://localhost:3000",
                 "http://localhost:4200",
                 "http://localhost:5173",
-                "http://localhost:8763"
+                "http://localhost:8080"
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));
@@ -77,36 +76,10 @@ public class SecurityConfig {
 
     private Collection<GrantedAuthority> extractAuthorities(Jwt jwt) {
         List<GrantedAuthority> authorities = new ArrayList<>();
-        addRealmRoles(jwt, authorities);
-        addResourceRoles(jwt, authorities);
-        return authorities;
-    }
-
-    private void addRealmRoles(Jwt jwt, List<GrantedAuthority> authorities) {
-        Map<String, Object> realmAccess = jwt.getClaim("realm_access");
-        if (realmAccess == null || !(realmAccess.get("roles") instanceof Collection<?> roles)) {
-            return;
+        Object rolesClaim = jwt.getClaim("roles");
+        if (!(rolesClaim instanceof Collection<?> roles)) {
+            return authorities;
         }
-        addRoles(roles, authorities);
-    }
-
-    private void addResourceRoles(Jwt jwt, List<GrantedAuthority> authorities) {
-        Map<String, Object> resourceAccess = jwt.getClaim("resource_access");
-        if (resourceAccess == null) {
-            return;
-        }
-        for (Object clientAccess : resourceAccess.values()) {
-            if (!(clientAccess instanceof Map<?, ?> client)) {
-                continue;
-            }
-            Object roles = client.get("roles");
-            if (roles instanceof Collection<?> clientRoles) {
-                addRoles(clientRoles, authorities);
-            }
-        }
-    }
-
-    private void addRoles(Collection<?> roles, List<GrantedAuthority> authorities) {
         roles.stream()
                 .filter(String.class::isInstance)
                 .map(String.class::cast)
@@ -114,5 +87,6 @@ public class SecurityConfig {
                 .map(String::toUpperCase)
                 .map(SimpleGrantedAuthority::new)
                 .forEach(authorities::add);
+        return authorities;
     }
 }

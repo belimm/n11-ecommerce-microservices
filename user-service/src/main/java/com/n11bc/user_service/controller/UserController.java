@@ -1,5 +1,6 @@
 package com.n11bc.user_service.controller;
 
+import com.n11bc.user_service.dto.request.ChangePasswordRequest;
 import com.n11bc.user_service.dto.request.UpdateUserRequest;
 import com.n11bc.user_service.dto.response.ErrorResponse;
 import com.n11bc.user_service.dto.response.MessageResponse;
@@ -83,6 +84,25 @@ public class UserController {
         log.info("Update user request for ID: {}", id);
         UserResponse user = userService.updateUser(id, request);
         return ResponseEntity.ok(user);
+    }
+
+
+    @Operation(summary = "Kullanici sifresini degistir", description = "Kullanici mevcut sifresini dogrulayarak yeni sifre belirler.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Sifre basariyla guncellendi",
+                    content = @Content(schema = @Schema(implementation = MessageResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Gecersiz istek veya hatali mevcut sifre",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Kullanici bulunamadi",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    @PatchMapping("/{id}/password")
+    public ResponseEntity<MessageResponse> changePassword(
+            @PathVariable String id,
+            @Valid @RequestBody ChangePasswordRequest request) {
+        log.info("Change password request for ID: {}", id);
+        userService.changePassword(id, request);
+        return ResponseEntity.ok(new MessageResponse("Password changed successfully"));
     }
 
     @Operation(summary = "Kullanici sil", description = "Sadece ADMIN rolune sahip kullanicilar erisebilir.")

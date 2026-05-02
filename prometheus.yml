@@ -1,0 +1,23 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: spring-boot-services
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets:
+          - discovery-server:8761
+          - config-server:8762
+          - api-gateway:8080
+          - user-service:8081
+          - product-service:8082
+          - cart-service:8083
+          - order-service:8084
+          - stock-service:8085
+          - payment-service:8086
+
+  - job_name: prometheus
+    static_configs:
+      - targets:
+          - prometheus:9090

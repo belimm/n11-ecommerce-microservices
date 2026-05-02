@@ -18,6 +18,7 @@ public interface AddressMapper {
     Address addressRequestToAddress(AddressRequest request);
 
     // Address entity to AddressResponse
+    @Mapping(target = "defaultAddress", expression = "java(Boolean.TRUE.equals(address.getDefaultAddress()))")
     AddressResponse addressToAddressResponse(Address address);
 
     // UpdateAddressRequest to Address (partial update)

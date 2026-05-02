@@ -7,8 +7,12 @@ on:
 
 jobs:
   deploy:
-    name: CD Pipeline
+    name: Build images and deploy to EC2
     runs-on: ubuntu-latest
+
+    env:
+      IMAGE_TAG: 0.0.1-SNAPSHOT
+      SERVICES: discover-server config-server api-gateway user-service product-service cart-service order-service stock-service payment-service
 
     steps:
       - name: Checkout
@@ -17,50 +21,116 @@ jobs:
       - name: Set up Java 21
         uses: actions/setup-java@v4
         with:
-          java-version: '21'
-          distribution: 'temurin'
+          java-version: "21"
+          distribution: temurin
           cache: maven
 
-      - name: Build & Push Docker images (Jib)
+      - name: Build and push Docker images with Jib
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
         run: |
-          for service in $(find . -maxdepth 1 -type d \( -name "*-server" \
-            -o -name "*-service" \
-            -o -name "*-gateway" \) | sort); do
-            if [ -f "$service/pom.xml" ]; then
-              echo "🐳 Building image for $service..."
-              cd $service
+          set -euo pipefail
+          for service in $SERVICES; do
+            echo "Building image for ${service}"
+            (
+              cd "${service}"
               mvn compile jib:build \
-                -Djib.to.auth.username=${{ secrets.DOCKERHUB_USERNAME }} \
-                -Djib.to.auth.password=${{ secrets.DOCKERHUB_TOKEN }} \
+                -DskipTests \
+                -Djib.to.auth.username="$DOCKERHUB_USERNAME" \
+                -Djib.to.auth.password="$DOCKERHUB_TOKEN" \
                 --batch-mode
-              cd ..
-            fi
+            )
           done
 
-      - name: Deploy to EC2
+      - name: Render production environment file
+        run: |
+          set -euo pipefail
+          cat > .env.production <<'EOF'
+          DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
+          IMAGE_TAG=${{ env.IMAGE_TAG }}
+
+          DB_URL=${{ secrets.DB_URL }}
+          DB_USERNAME=${{ secrets.DB_USERNAME }}
+          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+
+          RABBITMQ_USERNAME=${{ secrets.RABBITMQ_USERNAME }}
+          RABBITMQ_PASSWORD=${{ secrets.RABBITMQ_PASSWORD }}
+
+          IYZICO_API_KEY=${{ secrets.IYZICO_API_KEY }}
+          IYZICO_SECRET_KEY=${{ secrets.IYZICO_SECRET_KEY }}
+          IYZICO_BASE_URL=https://sandbox-api.iyzipay.com
+
+          PRODUCT_SEED_ENABLED=${{ vars.PRODUCT_SEED_ENABLED || 'false' }}
+          STOCK_SEED_ENABLED=${{ vars.STOCK_SEED_ENABLED || 'false' }}
+
+          GRAFANA_ADMIN_USER=${{ secrets.GRAFANA_ADMIN_USER }}
+          GRAFANA_ADMIN_PASSWORD=${{ secrets.GRAFANA_ADMIN_PASSWORD }}
+          GF_AUTH_ANONYMOUS_ENABLED=true
+          GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+          GF_SECURITY_ALLOW_EMBEDDING=true
+          EOF
+          chmod 600 .env.production
+
+      - name: Prepare EC2 deployment directory
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd ~/ecommerce
-            docker-compose pull
-            docker-compose up -d
-            echo "✅ Deployed successfully"
+            mkdir -p ~/ecommerce
 
-      - name: Slack — Success
+      - name: Upload compose and environment files to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: docker-compose.yml,prometheus.yml,.env.production
+          target: ~/ecommerce
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          envs: DOCKERHUB_USERNAME,DOCKERHUB_TOKEN
+          script: |
+            set -euo pipefail
+            cd ~/ecommerce
+            test -f .env.production
+            printf %s "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+            if docker compose version >/dev/null 2>&1; then
+              COMPOSE="docker compose"
+            else
+              COMPOSE="docker-compose"
+            fi
+            $COMPOSE --env-file .env.production pull
+            $COMPOSE --env-file .env.production up -d --remove-orphans
+            docker image prune -f
+            sleep 20
+            $COMPOSE --env-file .env.production ps
+            curl -fsS http://localhost:8080/actuator/health
+            echo "Deployed successfully"
+
+      - name: Slack success
         if: success()
         uses: rtCamp/action-slack-notify@v2
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_COLOR: good
-          SLACK_MESSAGE: "🚀 Deployed to EC2 — ${{ github.event.head_commit.message }}"
+          SLACK_MESSAGE: "Deployed to EC2 - ${{ github.event.head_commit.message }}"
 
-      - name: Slack — Failure
+      - name: Slack failure
         if: failure()
         uses: rtCamp/action-slack-notify@v2
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_COLOR: danger
-          SLACK_MESSAGE: "❌ Deploy failed — ${{ github.event.head_commit.message }}"
+          SLACK_MESSAGE: "Deploy failed - ${{ github.event.head_commit.message }}"

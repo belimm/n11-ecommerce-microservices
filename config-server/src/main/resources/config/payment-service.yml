@@ -1,0 +1,45 @@
+server:
+  port: ${PAYMENT_SERVICE_PORT:8086}
+
+app:
+  rabbitmq:
+    stock-exchange: stock.exchange
+    payment-exchange: payment.exchange
+    stock-reserved-queue: stock.reserved.queue
+    stock-reserved-routing-key: stock.reserved
+    payment-success-queue: payment.success.queue
+    payment-success-routing-key: payment.success
+    payment-failed-queue: payment.failed.queue
+    payment-failed-routing-key: payment.failed
+  iyzico:
+    api-key: ${IYZICO_API_KEY:}
+    secret-key: ${IYZICO_SECRET_KEY:}
+    base-url: ${IYZICO_BASE_URL:https://sandbox-api.iyzipay.com}
+    locale: ${IYZICO_LOCALE:tr}
+    currency: ${IYZICO_CURRENCY:TRY}
+    payment-channel: WEB
+    payment-group: PRODUCT
+    installment: 1
+    sandbox-card:
+      card-holder-name: ${IYZICO_CARD_HOLDER_NAME:John Doe}
+      card-number: ${IYZICO_CARD_NUMBER:5526080000000006}
+      expire-year: ${IYZICO_CARD_EXPIRE_YEAR:2030}
+      expire-month: ${IYZICO_CARD_EXPIRE_MONTH:12}
+      cvc: ${IYZICO_CARD_CVC:123}
+    buyer:
+      name: ${IYZICO_BUYER_NAME:John}
+      surname: ${IYZICO_BUYER_SURNAME:Doe}
+      identity-number: ${IYZICO_BUYER_IDENTITY_NUMBER:74300864111}
+      email: ${IYZICO_BUYER_EMAIL:sandboxtest@gmail.com}
+      gsm-number: ${IYZICO_BUYER_GSM_NUMBER:+905555555555}
+      ip: ${IYZICO_BUYER_IP:127.0.0.1}
+      registration-address: ${IYZICO_BUYER_ADDRESS:Local development address}
+      city: ${IYZICO_BUYER_CITY:Istanbul}
+      country: ${IYZICO_BUYER_COUNTRY:Turkey}
+      zip-code: ${IYZICO_BUYER_ZIP_CODE:34000}
+    address:
+      contact-name: ${IYZICO_ADDRESS_CONTACT_NAME:John Doe}
+      address: ${IYZICO_ADDRESS:Local development address}
+      city: ${IYZICO_ADDRESS_CITY:Istanbul}
+      country: ${IYZICO_ADDRESS_COUNTRY:Turkey}
+      zip-code: ${IYZICO_ADDRESS_ZIP_CODE:34000}

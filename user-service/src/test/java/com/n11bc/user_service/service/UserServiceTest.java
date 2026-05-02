@@ -91,7 +91,32 @@ class UserServiceTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getUsername()).isEqualTo("testuser");
-        verify(userRepository).save(any(User.class));
+        verify(userRepository).save(argThat(savedUser -> savedUser.getRole() == Role.CUSTOMER && savedUser.isActive()));
+    }
+
+    @Test
+    @DisplayName("registerUser: request role ADMIN olsa bile CUSTOMER olarak kaydedilir")
+    void registerUser_adminRoleInRequest_ignored() {
+        SignupRequest adminSignupRequest = new SignupRequest("adminlike", "adminlike@example.com", "password123",
+                "Admin", "Like", "5551234567", Role.ADMIN);
+        User mappedUser = User.builder()
+                .username("adminlike")
+                .email("adminlike@example.com")
+                .password("encoded-password")
+                .role(Role.ADMIN)
+                .active(false)
+                .build();
+
+        when(userRepository.existsByUsername("adminlike")).thenReturn(false);
+        when(userRepository.existsByEmail("adminlike@example.com")).thenReturn(false);
+        when(userMapper.signupRequestToUser(adminSignupRequest)).thenReturn(mappedUser);
+        when(passwordEncoder.encode("password123")).thenReturn("encoded-password");
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(userMapper.userToUserResponse(any(User.class))).thenReturn(userResponse);
+
+        userService.registerUser(adminSignupRequest);
+
+        verify(userRepository).save(argThat(savedUser -> savedUser.getRole() == Role.CUSTOMER && savedUser.isActive()));
     }
 
     @Test

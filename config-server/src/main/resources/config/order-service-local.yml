@@ -1,0 +1,5 @@
+spring:
+  datasource:
+    url: ${ORDER_DB_URL:${DB_URL:jdbc:postgresql://localhost:5432/n11bc}}
+    username: ${ORDER_DB_USERNAME:${DB_USERNAME:postgres}}
+    password: ${ORDER_DB_PASSWORD:${DB_PASSWORD:1234}}

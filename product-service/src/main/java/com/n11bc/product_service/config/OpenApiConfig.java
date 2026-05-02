@@ -18,8 +18,8 @@ import org.springframework.context.annotation.Configuration;
                 contact = @Contact(name = "N11 Backend Team")
         ),
         servers = {
-                @Server(url = "http://localhost:8763", description = "API Gateway"),
-                @Server(url = "http://localhost:8084", description = "Direct Access")
+                @Server(url = "http://localhost:8080", description = "API Gateway"),
+                @Server(url = "http://localhost:8082", description = "Direct Access")
         }
 )
 @SecurityScheme(

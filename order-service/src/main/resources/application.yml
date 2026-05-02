@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: order-service
+  config:
+    import: "configserver:${CONFIG_URI:http://localhost:8762}"
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}

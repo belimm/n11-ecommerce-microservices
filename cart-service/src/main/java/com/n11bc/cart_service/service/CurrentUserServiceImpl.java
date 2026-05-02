@@ -15,6 +15,7 @@ public class CurrentUserServiceImpl implements CurrentUserService {
         if (authentication == null || !(authentication.getPrincipal() instanceof Jwt jwt)) {
             throw new AuthenticationCredentialsNotFoundException("Authenticated user token is required");
         }
-        return jwt.getSubject();
+        String userId = jwt.getClaimAsString("userId");
+        return userId == null || userId.isBlank() ? jwt.getSubject() : userId;
     }
 }

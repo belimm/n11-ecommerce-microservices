@@ -1,0 +1,22 @@
+server:
+  port: ${STOCK_SERVICE_PORT:8085}
+
+app:
+  seed:
+    enabled: ${STOCK_SEED_ENABLED:true}
+  rabbitmq:
+    order-exchange: order.exchange
+    stock-exchange: stock.exchange
+    payment-exchange: payment.exchange
+    order-created-queue: order.created.queue
+    order-created-routing-key: order.created
+    order-cancelled-queue: order.cancelled.queue
+    order-cancelled-routing-key: order.cancelled
+    stock-reserved-queue: stock.reserved.queue
+    stock-reserved-routing-key: stock.reserved
+    stock-failed-queue: stock.failed.queue
+    stock-failed-routing-key: stock.failed
+    stock-released-queue: stock.released.queue
+    stock-released-routing-key: stock.released
+    payment-failed-queue: payment.failed.queue
+    payment-failed-routing-key: payment.failed

@@ -1,0 +1,5 @@
+spring:
+  datasource:
+    url: ${PAYMENT_DB_URL:${DB_URL:jdbc:postgresql://localhost:5432/n11bc}}
+    username: ${PAYMENT_DB_USERNAME:${DB_USERNAME:postgres}}
+    password: ${PAYMENT_DB_PASSWORD:${DB_PASSWORD:1234}}

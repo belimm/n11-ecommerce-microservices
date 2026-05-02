@@ -33,8 +33,6 @@ public class UserResponse {
 
     private boolean active;
 
-    private boolean emailVerified;
-
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;

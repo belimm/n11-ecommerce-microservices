@@ -192,7 +192,7 @@
                     </to>
                     <container>
                         <ports>
-                            <port>8085</port>
+                            <port>8083</port>
                         </ports>
                         <creationTime>USE_CURRENT_TIMESTAMP</creationTime>
                     </container>

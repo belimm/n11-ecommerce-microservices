@@ -180,7 +180,7 @@
                     </to>
                     <container>
                         <ports>
-                            <port>8084</port>
+                            <port>8082</port>
                         </ports>
                         <creationTime>USE_CURRENT_TIMESTAMP</creationTime>
                     </container>
