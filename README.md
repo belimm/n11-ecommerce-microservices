@@ -1,8 +1,11 @@
 # N11 E-Commerce Microservices
 
+
 Bu repo, bootcamp kapsamında geliştirilen e-ticaret projesinin backend servislerini ve deployment dosyalarını içerir. Sistem; Spring Boot mikroservisleri, RabbitMQ üzerinden choreography tabanlı SAGA akışı, PostgreSQL, merkezi config yönetimi ve public giriş noktası olarak API Gateway üzerine kuruludur.
+Swagger: `http://54.229.67.8:8080/swagger-ui/index.html`
 
 Frontend uygulaması `n11-ecommerce-fe` klasöründedir. Browser tarafı backend servislerine doğrudan değil, API Gateway üzerinden gider.
+Frontend: `https://berklimoncu-n11market.vercel.app`
 
 ## Servis Haritası
 
