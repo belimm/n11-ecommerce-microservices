@@ -31,6 +31,7 @@
 		<spring-cloud.version>2025.0.2</spring-cloud.version>
 		<jib.version>3.4.4</jib.version>
 		<mapstruct.version>1.6.3</mapstruct.version>
+		<testcontainers.version>1.21.3</testcontainers.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -106,6 +107,16 @@
 			<artifactId>spring-security-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>postgresql</artifactId>
+			<scope>test</scope>
+		</dependency>
 
 	</dependencies>
 	<dependencyManagement>
@@ -114,6 +125,13 @@
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-dependencies</artifactId>
 				<version>${spring-cloud.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.testcontainers</groupId>
+				<artifactId>testcontainers-bom</artifactId>
+				<version>${testcontainers.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>

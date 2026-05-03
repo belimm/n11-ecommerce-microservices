@@ -17,6 +17,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -37,7 +38,24 @@ import static org.mockito.Mockito.when;
         "spring.cloud.config.enabled=false",
         "eureka.client.enabled=false",
         "spring.cloud.discovery.enabled=false",
-        "spring.jpa.hibernate.ddl-auto=create-drop"
+        "spring.jpa.hibernate.ddl-auto=create-drop",
+        "spring.main.allow-bean-definition-overriding=true",
+        "app.jwt.secret=test-jwt-secret-key-that-is-at-least-32-bytes",
+        "app.cart-service.base-url=http://localhost:8083",
+        "app.user-service.base-url=http://localhost:8081",
+        "app.rabbitmq.order-exchange=order.exchange",
+        "app.rabbitmq.stock-exchange=stock.exchange",
+        "app.rabbitmq.payment-exchange=payment.exchange",
+        "app.rabbitmq.order-created-queue=order.created.queue",
+        "app.rabbitmq.order-cancelled-queue=order.cancelled.queue",
+        "app.rabbitmq.stock-failed-queue=stock.failed.queue",
+        "app.rabbitmq.payment-success-queue=payment.success.queue",
+        "app.rabbitmq.stock-released-queue=stock.released.queue",
+        "app.rabbitmq.order-created-routing-key=order.created",
+        "app.rabbitmq.order-cancelled-routing-key=order.cancelled",
+        "app.rabbitmq.stock-failed-routing-key=stock.failed",
+        "app.rabbitmq.payment-success-routing-key=payment.success",
+        "app.rabbitmq.stock-released-routing-key=stock.released"
 })
 @Testcontainers
 class OrderServiceIntegrationTest {
@@ -81,7 +99,10 @@ class OrderServiceIntegrationTest {
     static class SecurityTestConfig {
         @Bean
         JwtDecoder jwtDecoder() {
-            return token -> null;
+            return token -> Jwt.withTokenValue(token)
+                    .header("alg", "none")
+                    .claim("sub", "test-user")
+                    .build();
         }
     }
 

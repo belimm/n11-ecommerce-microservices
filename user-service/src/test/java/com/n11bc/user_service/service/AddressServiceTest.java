@@ -39,7 +39,7 @@ class AddressServiceTest {
     private AddressMapper addressMapper;
 
     @InjectMocks
-    private AddressService addressService;
+    private AddressServiceImpl addressService;
 
     private User user;
     private Address address;

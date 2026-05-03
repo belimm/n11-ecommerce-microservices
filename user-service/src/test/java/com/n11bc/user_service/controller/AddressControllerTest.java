@@ -26,7 +26,12 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(AddressController.class)
+@WebMvcTest(value = AddressController.class, properties = {
+        "spring.config.import=",
+        "spring.cloud.config.enabled=false",
+        "spring.cloud.discovery.enabled=false",
+        "eureka.client.enabled=false"
+})
 class AddressControllerTest {
 
     @Autowired
@@ -119,12 +124,12 @@ class AddressControllerTest {
     }
 
     @Test
-    @DisplayName("POST addresses: kimlik dogrulama yok 401 dondurur")
+    @DisplayName("POST addresses: kimlik dogrulama yok 403 dondurur")
     void createAddress_noAuth_returns401() throws Exception {
         mockMvc.perform(post(BASE_URL, USER_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validRequest)))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isForbidden());
     }
 
     // ---- GET /api/users/{userId}/addresses ----
@@ -277,10 +282,10 @@ class AddressControllerTest {
     }
 
     @Test
-    @DisplayName("DELETE addresses/{addressId}: kimlik dogrulama yok 401 dondurur")
+    @DisplayName("DELETE addresses/{addressId}: kimlik dogrulama yok 403 dondurur")
     void deleteAddress_noAuth_returns401() throws Exception {
         mockMvc.perform(delete(BASE_URL + "/{addressId}", USER_ID, ADDRESS_ID))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isForbidden());
     }
 
     // ---- PATCH /api/users/{userId}/addresses/{addressId}/set-default ----

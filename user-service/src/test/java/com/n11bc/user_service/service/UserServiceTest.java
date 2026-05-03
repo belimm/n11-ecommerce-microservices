@@ -1,10 +1,12 @@
 package com.n11bc.user_service.service;
 
+import com.n11bc.user_service.dto.request.ChangePasswordRequest;
 import com.n11bc.user_service.dto.request.SignupRequest;
 import com.n11bc.user_service.dto.request.UpdateUserRequest;
 import com.n11bc.user_service.dto.response.UserResponse;
 import com.n11bc.user_service.entity.Role;
 import com.n11bc.user_service.entity.User;
+import com.n11bc.user_service.exception.InvalidPasswordException;
 import com.n11bc.user_service.exception.UserAlreadyExistsException;
 import com.n11bc.user_service.exception.UserNotFoundException;
 import com.n11bc.user_service.mapper.UserMapper;
@@ -41,7 +43,7 @@ class UserServiceTest {
     private PasswordEncoder passwordEncoder;
 
     @InjectMocks
-    private UserService userService;
+    private UserServiceImpl userService;
 
     private User user;
     private UserResponse userResponse;
@@ -261,6 +263,48 @@ class UserServiceTest {
         verify(userRepository, never()).existsByEmail(anyString());
     }
 
+
+    // ---- changePassword ----
+
+    @Test
+    @DisplayName("changePassword: mevcut sifre dogruysa yeni sifre kaydedilir")
+    void changePassword_success() {
+        ChangePasswordRequest request = new ChangePasswordRequest("oldPassword", "newPassword123");
+        when(userRepository.findById("user-id-1")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("oldPassword", "encoded-password")).thenReturn(true);
+        when(passwordEncoder.encode("newPassword123")).thenReturn("new-encoded-password");
+        when(userRepository.save(user)).thenReturn(user);
+
+        userService.changePassword("user-id-1", request);
+
+        assertThat(user.getPassword()).isEqualTo("new-encoded-password");
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    @DisplayName("changePassword: mevcut sifre hataliysa exception firlatilir")
+    void changePassword_wrongCurrentPassword() {
+        ChangePasswordRequest request = new ChangePasswordRequest("wrongPassword", "newPassword123");
+        when(userRepository.findById("user-id-1")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("wrongPassword", "encoded-password")).thenReturn(false);
+
+        assertThatThrownBy(() -> userService.changePassword("user-id-1", request))
+                .isInstanceOf(InvalidPasswordException.class)
+                .hasMessageContaining("Current password is incorrect");
+
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("changePassword: kullanici bulunamadi")
+    void changePassword_userNotFound() {
+        ChangePasswordRequest request = new ChangePasswordRequest("oldPassword", "newPassword123");
+        when(userRepository.findById("missing-id")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userService.changePassword("missing-id", request))
+                .isInstanceOf(UserNotFoundException.class);
+    }
+
     // ---- deleteUser ----
 
     @Test
@@ -352,6 +396,30 @@ class UserServiceTest {
         assertThatThrownBy(() -> userService.findByUsername("unknown"))
                 .isInstanceOf(UserNotFoundException.class)
                 .hasMessageContaining("username");
+    }
+
+
+    // ---- findByEmail ----
+
+    @Test
+    @DisplayName("findByEmail: basarili arama")
+    void findByEmail_success() {
+        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
+
+        User result = userService.findByEmail("test@example.com");
+
+        assertThat(result).isNotNull();
+        assertThat(result.getEmail()).isEqualTo("test@example.com");
+    }
+
+    @Test
+    @DisplayName("findByEmail: kullanici bulunamadi")
+    void findByEmail_notFound() {
+        when(userRepository.findByEmail("unknown@example.com")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userService.findByEmail("unknown@example.com"))
+                .isInstanceOf(UserNotFoundException.class)
+                .hasMessageContaining("email");
     }
 
     // ---- findByUsernameOrEmail ----

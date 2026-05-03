@@ -40,7 +40,14 @@ import static org.mockito.Mockito.when;
         "spring.jpa.hibernate.ddl-auto=create-drop",
         "spring.jpa.show-sql=false",
         "app.cart.abandoned-scan-cron=0 0 0 31 12 *",
-        "spring.security.oauth2.resourceserver.jwt.issuer-uri=http://localhost/realms/test"
+        "spring.security.oauth2.resourceserver.jwt.issuer-uri=http://localhost/realms/test",
+        "spring.main.allow-bean-definition-overriding=true",
+        "app.jwt.secret=test-jwt-secret-key-that-is-at-least-32-bytes",
+        "app.product-service.base-url=http://localhost:8082",
+        "app.cart.abandoned-after-hours=24",
+        "app.rabbitmq.cart-exchange=cart.exchange",
+        "app.rabbitmq.abandoned-cart-queue=abandoned.cart.queue",
+        "app.rabbitmq.abandoned-cart-routing-key=abandoned.cart"
 })
 class CartServiceIntegrationTest {
 

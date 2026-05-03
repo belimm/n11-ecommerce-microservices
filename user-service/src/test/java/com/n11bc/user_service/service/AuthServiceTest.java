@@ -44,7 +44,7 @@ class AuthServiceTest {
     private JwtEncoder jwtEncoder;
 
     @InjectMocks
-    private AuthService authService;
+    private AuthServiceImpl authService;
 
     private User activeUser;
     private User inactiveUser;
@@ -82,10 +82,11 @@ class AuthServiceTest {
                 .build();
     }
 
-    private Jwt mockJwtWithToken(String tokenValue) {
-        Jwt jwt = mock(Jwt.class);
-        when(jwt.getTokenValue()).thenReturn(tokenValue);
-        return jwt;
+    private Jwt jwtWithToken(String tokenValue) {
+        return Jwt.withTokenValue(tokenValue)
+                .header("alg", "HS256")
+                .claim("sub", "user-id-1")
+                .build();
     }
 
     // ---- authenticateUser ----
@@ -96,7 +97,7 @@ class AuthServiceTest {
         LoginRequest request = new LoginRequest("testuser", "password123");
         when(userService.findByUsernameOrEmail("testuser")).thenReturn(activeUser);
         when(passwordEncoder.matches("password123", "encoded-password")).thenReturn(true);
-        when(jwtEncoder.encode(any())).thenReturn(mockJwtWithToken(ACCESS_TOKEN));
+        when(jwtEncoder.encode(any())).thenReturn(jwtWithToken(ACCESS_TOKEN));
         when(refreshTokenService.createOrUpdateRefreshToken(any(User.class), anyString())).thenReturn(refreshToken);
 
         JwtResponse result = authService.authenticateUser(request);
@@ -153,7 +154,7 @@ class AuthServiceTest {
         RefreshTokenRequest request = new RefreshTokenRequest(REFRESH_TOKEN_STR);
         when(refreshTokenService.findByToken(REFRESH_TOKEN_STR)).thenReturn(Optional.of(refreshToken));
         when(refreshTokenService.verifyExpiration(refreshToken)).thenReturn(refreshToken);
-        when(jwtEncoder.encode(any())).thenReturn(mockJwtWithToken(ACCESS_TOKEN));
+        when(jwtEncoder.encode(any())).thenReturn(jwtWithToken(ACCESS_TOKEN));
 
         JwtResponse result = authService.refreshAccessToken(request);
 

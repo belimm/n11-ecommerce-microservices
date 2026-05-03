@@ -28,14 +28,14 @@ class RefreshTokenServiceTest {
     private RefreshTokenRepository refreshTokenRepository;
 
     @InjectMocks
-    private RefreshTokenService refreshTokenService;
+    private RefreshTokenServiceImpl refreshTokenService;
 
     private User user;
     private RefreshToken validToken;
     private RefreshToken expiredToken;
     private RefreshToken revokedToken;
 
-    private static final String TOKEN_VALUE = "keycloak-refresh-token-xyz";
+    private static final String TOKEN_VALUE = "refresh-token-xyz";
     private static final long EXPIRATION_MS = 604800000L; // 7 days
 
     @BeforeEach
@@ -179,7 +179,7 @@ class RefreshTokenServiceTest {
     @Test
     @DisplayName("updateRefreshToken: token degeri ve expiry guncellenir")
     void updateRefreshToken_updatesValues() {
-        String newToken = "new-keycloak-token";
+        String newToken = "new-refresh-token-value";
         when(refreshTokenRepository.save(any(RefreshToken.class))).thenAnswer(inv -> inv.getArgument(0));
 
         Instant before = Instant.now();
@@ -198,5 +198,16 @@ class RefreshTokenServiceTest {
         refreshTokenService.revokeByUser(user);
 
         verify(refreshTokenRepository).revokeByUser(user);
+    }
+
+
+    // ---- deleteExpiredTokens ----
+
+    @Test
+    @DisplayName("deleteExpiredTokens: suresi dolmus tokenlari repository uzerinden temizler")
+    void deleteExpiredTokens_callsRepository() {
+        refreshTokenService.deleteExpiredTokens();
+
+        verify(refreshTokenRepository).deleteExpiredTokens(any(Instant.class));
     }
 }

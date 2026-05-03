@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -30,7 +31,25 @@ import static org.assertj.core.api.Assertions.assertThat;
         "spring.cloud.config.enabled=false",
         "eureka.client.enabled=false",
         "spring.cloud.discovery.enabled=false",
-        "spring.jpa.hibernate.ddl-auto=create-drop"
+        "spring.jpa.hibernate.ddl-auto=create-drop",
+        "spring.main.allow-bean-definition-overriding=true",
+        "app.jwt.secret=test-jwt-secret-key-that-is-at-least-32-bytes",
+        "app.seed.enabled=false",
+        "app.rabbitmq.order-exchange=order.exchange",
+        "app.rabbitmq.stock-exchange=stock.exchange",
+        "app.rabbitmq.payment-exchange=payment.exchange",
+        "app.rabbitmq.order-created-queue=order.created.queue",
+        "app.rabbitmq.order-cancelled-queue=order.cancelled.queue",
+        "app.rabbitmq.stock-reserved-queue=stock.reserved.queue",
+        "app.rabbitmq.stock-failed-queue=stock.failed.queue",
+        "app.rabbitmq.stock-released-queue=stock.released.queue",
+        "app.rabbitmq.payment-failed-queue=payment.failed.queue",
+        "app.rabbitmq.order-created-routing-key=order.created",
+        "app.rabbitmq.order-cancelled-routing-key=order.cancelled",
+        "app.rabbitmq.stock-reserved-routing-key=stock.reserved",
+        "app.rabbitmq.stock-failed-routing-key=stock.failed",
+        "app.rabbitmq.stock-released-routing-key=stock.released",
+        "app.rabbitmq.payment-failed-routing-key=payment.failed"
 })
 @Testcontainers
 class StockServiceIntegrationTest {
@@ -65,7 +84,10 @@ class StockServiceIntegrationTest {
     static class SecurityTestConfig {
         @Bean
         JwtDecoder jwtDecoder() {
-            return token -> null;
+            return token -> Jwt.withTokenValue(token)
+                    .header("alg", "none")
+                    .claim("sub", "test-user")
+                    .build();
         }
     }
 
