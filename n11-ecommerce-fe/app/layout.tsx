@@ -23,6 +23,17 @@ export default async function RootLayout({
       <body>
         <StoreHeader session={session} />
         <main className="min-h-[calc(100vh-88px)]">{children}</main>
+        <footer className="site-footer">
+          <div className="page-shell">
+            <p>
+              Bu proje{" "}
+              <a href="https://www.belim.dev" target="_blank" rel="noopener noreferrer" className="footer-link">
+                Berk Limoncu
+              </a>{" "}
+              tarafından n11 Talenthub Backend Bootcamp&apos;i için geliştirilmiştir.
+            </p>
+          </div>
+        </footer>
       </body>
     </html>
   );
