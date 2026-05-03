@@ -19,8 +19,7 @@ import org.springframework.context.annotation.Configuration;
                 contact = @Contact(name = "N11 Backend Team")
         ),
         servers = {
-                @Server(url = "http://localhost:8080", description = "API Gateway"),
-                @Server(url = "http://localhost:8081", description = "Direct Access")
+                @Server(url = "/", description = "API Gateway")
         }
 )
 @SecurityScheme(
@@ -29,7 +28,7 @@ import org.springframework.context.annotation.Configuration;
         scheme = "bearer",
         bearerFormat = "JWT",
         in = SecuritySchemeIn.HEADER,
-        description = "Keycloak JWT access token. /api/auth/signin endpoint'inden alinir."
+        description = "JWT access token. /api/auth/signin endpoint'inden alinir."
 )
 public class OpenApiConfig {
 }

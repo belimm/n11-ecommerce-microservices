@@ -41,6 +41,7 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional
     public void processStockReserved(StockReservedEvent event) {
+        // A stock reservation can be redelivered; one payment decision is kept for each order.
         paymentRepository.findByOrderId(event.orderId()).ifPresentOrElse(
                 existingPayment -> republishExistingResult(existingPayment, event),
                 () -> processNewPayment(event)
@@ -71,6 +72,7 @@ public class PaymentServiceImpl implements PaymentService {
     private void processNewPayment(StockReservedEvent event) {
         Payment payment = buildPayment(event);
         try {
+            // Provider responses are translated into domain events so the rest of the SAGA stays provider-agnostic.
             IyzicoPaymentResult result = iyzicoPaymentClient.createPayment(payment, event);
             if (result.successful()) {
                 payment.markSuccess(result.paymentId(), result.status());
@@ -99,6 +101,7 @@ public class PaymentServiceImpl implements PaymentService {
                 .paidPrice(totalPrice)
                 .currency("TRY")
                 .build();
+        // Payment items mirror the reserved order snapshot for audit and later refund/cancel operations.
         event.items().forEach(item -> payment.addItem(PaymentItem.builder()
                 .productId(item.productId())
                 .productName(item.productName())

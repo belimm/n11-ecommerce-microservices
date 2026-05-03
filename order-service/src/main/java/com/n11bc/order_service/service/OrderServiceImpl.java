@@ -48,6 +48,7 @@ public class OrderServiceImpl implements OrderService {
         validateCart(userId, cart);
         UserAddressResponse address = userAddressClient.getAddress(userId, request.addressId(), bearerToken);
 
+        // Keep shipping and item snapshots so later profile/catalog changes do not rewrite historical orders.
         Order order = Order.builder()
                 .orderNumber(generateOrderNumber())
                 .userId(userId)
@@ -61,6 +62,7 @@ public class OrderServiceImpl implements OrderService {
         order.replaceItems(items);
 
         Order savedOrder = orderRepository.save(order);
+        // The order is persisted before publishing so SAGA consumers can safely reference a durable order id.
         eventPublisher.publishOrderCreated(toOrderCreatedEvent(savedOrder, request));
         log.info("Order {} created for user {}", savedOrder.getId(), userId);
         return orderMapper.toResponse(savedOrder);
@@ -124,6 +126,7 @@ public class OrderServiceImpl implements OrderService {
         order.setStatusReason(reasonOrDefault(reason, "Saga status updated to " + targetStatus));
         Order savedOrder = orderRepository.save(order);
         if (targetStatus == OrderStatus.CANCELLED) {
+            // Cancellation is also published for compensation consumers such as stock release and notifications.
             eventPublisher.publishOrderCancelled(toOrderCancelledEvent(savedOrder, reason));
         }
     }
