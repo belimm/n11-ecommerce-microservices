@@ -20,6 +20,7 @@ import java.util.Map;
 public class IyzicoPaymentClient {
 
     private static final String PAYMENT_AUTH_PATH = "/payment/auth";
+    private static final String PAYMENT_CANCEL_PATH = "/payment/cancel";
 
     private final RestClient iyzicoRestClient;
     private final ObjectMapper objectMapper;
@@ -53,6 +54,56 @@ public class IyzicoPaymentClient {
             return IyzicoPaymentResult.failed("Iyzico returned an empty response");
         }
         return toPaymentResult(response);
+    }
+
+    public IyzicoPaymentResult cancelPayment(Payment payment, String reason) {
+        if (!properties.hasCredentials()) {
+            throw new IyzicoPaymentException("Iyzico API credentials are not configured");
+        }
+        if (payment.getIyzicoPaymentId() == null || payment.getIyzicoPaymentId().isBlank()) {
+            throw new IyzicoPaymentException("Iyzico payment id is required for cancellation");
+        }
+
+        Map<String, Object> request = buildCancelRequest(payment, reason);
+        String body = toJson(request);
+        String authorization = signatureGenerator.generateAuthorization(
+                properties.apiKey(),
+                properties.secretKey(),
+                PAYMENT_CANCEL_PATH,
+                body
+        );
+
+        String responseBody = iyzicoRestClient.post()
+                .uri(PAYMENT_CANCEL_PATH)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", authorization)
+                .body(body)
+                .retrieve()
+                .body(String.class);
+
+        Map<String, Object> response = toMap(responseBody);
+        if (response == null) {
+            return IyzicoPaymentResult.failed("Iyzico returned an empty cancellation response");
+        }
+        return toPaymentResult(response);
+    }
+
+    private Map<String, Object> buildCancelRequest(Payment payment, String reason) {
+        Map<String, Object> request = new LinkedHashMap<>();
+        request.put("locale", properties.locale());
+        request.put("conversationId", payment.getConversationId());
+        request.put("paymentId", payment.getIyzicoPaymentId());
+        request.put("reason", "OTHER");
+        request.put("description", cancellationDescription(reason));
+        request.put("ip", properties.buyer().ip());
+        return request;
+    }
+
+    private String cancellationDescription(String reason) {
+        if (reason == null || reason.isBlank()) {
+            return "Order cancelled";
+        }
+        return reason.length() > 120 ? reason.substring(0, 120) : reason;
     }
 
     private Map<String, Object> buildPaymentRequest(Payment payment, StockReservedEvent event) {

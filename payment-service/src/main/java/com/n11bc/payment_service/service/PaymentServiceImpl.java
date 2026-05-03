@@ -4,6 +4,7 @@ import com.n11bc.payment_service.dto.response.PaymentResponse;
 import com.n11bc.payment_service.entity.Payment;
 import com.n11bc.payment_service.entity.PaymentItem;
 import com.n11bc.payment_service.entity.PaymentStatus;
+import com.n11bc.payment_service.event.OrderCancelledEvent;
 import com.n11bc.payment_service.event.PaymentFailedEvent;
 import com.n11bc.payment_service.event.PaymentSuccessEvent;
 import com.n11bc.payment_service.event.StockReservedEvent;
@@ -49,6 +50,15 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
+    @Transactional
+    public void processOrderCancelled(OrderCancelledEvent event) {
+        paymentRepository.findByOrderId(event.orderId()).ifPresentOrElse(
+                payment -> compensateCancelledOrder(payment, event),
+                () -> log.info("Order {} was cancelled before a payment record existed", event.orderId())
+        );
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public PaymentResponse getPaymentByOrderId(Long orderId) {
         Payment payment = paymentRepository.findByOrderId(orderId)
@@ -67,6 +77,49 @@ public class PaymentServiceImpl implements PaymentService {
     @Transactional(readOnly = true)
     public Page<PaymentResponse> getAllPayments(Pageable pageable) {
         return paymentRepository.findAll(pageable).map(paymentMapper::toResponse);
+    }
+
+    private void compensateCancelledOrder(Payment payment, OrderCancelledEvent event) {
+        if (payment.getStatus() == PaymentStatus.CANCELLED) {
+            log.info("Payment for order {} is already cancelled; ignoring duplicate order cancellation", event.orderId());
+            return;
+        }
+        if (payment.getStatus() == PaymentStatus.FAILED) {
+            log.info("Payment for order {} already failed; provider cancellation is not required", event.orderId());
+            return;
+        }
+        if (payment.getStatus() == PaymentStatus.PENDING) {
+            payment.markCancelled("cancelled_without_provider_capture");
+            paymentRepository.save(payment);
+            log.info("Pending payment for order {} cancelled locally before provider capture", event.orderId());
+            return;
+        }
+
+        cancelCapturedPayment(payment, event);
+    }
+
+    private void cancelCapturedPayment(Payment payment, OrderCancelledEvent event) {
+        try {
+            IyzicoPaymentResult result = iyzicoPaymentClient.cancelPayment(payment, event.reason());
+            if (result.successful()) {
+                payment.markCancelled(result.status());
+                paymentRepository.save(payment);
+                log.info("Iyzico payment {} cancelled for order {}", payment.getIyzicoPaymentId(), event.orderId());
+                return;
+            }
+            markCancelFailed(payment, event, result.status(), failureReason(result.errorMessage()));
+        } catch (IyzicoPaymentException ex) {
+            markCancelFailed(payment, event, "failure", ex.getMessage());
+        } catch (RuntimeException ex) {
+            markCancelFailed(payment, event, "failure", "Unexpected payment cancellation provider error");
+        }
+    }
+
+    private void markCancelFailed(Payment payment, OrderCancelledEvent event, String iyzicoStatus, String reason) {
+        payment.markCancelFailed(iyzicoStatus, reason);
+        paymentRepository.save(payment);
+        log.warn("Payment cancellation failed for order {} paymentId={} reason={}",
+                event.orderId(), payment.getIyzicoPaymentId(), reason);
     }
 
     private void processNewPayment(StockReservedEvent event) {
@@ -101,7 +154,7 @@ public class PaymentServiceImpl implements PaymentService {
                 .paidPrice(totalPrice)
                 .currency("TRY")
                 .build();
-        // Payment items mirror the reserved order snapshot for audit and later refund/cancel operations.
+        // Payment items mirror the reserved order snapshot for audit and provider reconciliation.
         event.items().forEach(item -> payment.addItem(PaymentItem.builder()
                 .productId(item.productId())
                 .productName(item.productName())

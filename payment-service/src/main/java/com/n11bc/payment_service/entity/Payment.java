@@ -105,4 +105,16 @@ public class Payment {
         this.status = PaymentStatus.FAILED;
         this.failureReason = reason;
     }
+
+    public void markCancelled(String iyzicoStatus) {
+        this.iyzicoStatus = iyzicoStatus;
+        this.status = PaymentStatus.CANCELLED;
+        this.failureReason = null;
+    }
+
+    public void markCancelFailed(String iyzicoStatus, String reason) {
+        this.iyzicoStatus = iyzicoStatus;
+        this.status = PaymentStatus.CANCEL_FAILED;
+        this.failureReason = reason;
+    }
 }

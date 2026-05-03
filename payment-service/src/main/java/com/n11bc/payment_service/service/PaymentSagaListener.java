@@ -1,5 +1,6 @@
 package com.n11bc.payment_service.service;
 
+import com.n11bc.payment_service.event.OrderCancelledEvent;
 import com.n11bc.payment_service.event.StockReservedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,5 +18,11 @@ public class PaymentSagaListener {
     public void handleStockReserved(StockReservedEvent event) {
         log.info("Received StockReservedEvent for order {}", event.orderId());
         paymentService.processStockReserved(event);
+    }
+
+    @RabbitListener(queues = "${app.rabbitmq.order-cancelled-queue}")
+    public void handleOrderCancelled(OrderCancelledEvent event) {
+        log.info("Received OrderCancelledEvent for order {}", event.orderId());
+        paymentService.processOrderCancelled(event);
     }
 }
