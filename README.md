@@ -122,6 +122,19 @@ Temel auth endpointleri:
 | `POST` | `/api/auth/refresh` | Yeni access token üretir |
 | `POST` | `/api/auth/logout` | `X-User-Id` ile refresh token'ı revoke eder |
 
+## Admin Kullanıcı Yönetimi
+
+Signup endpointi dışarıdan `role` alanı gönderilse bile her yeni hesabı `CUSTOMER` olarak oluşturur. Bu karar bilinçli bir güvenlik önlemidir: client veya request manipülasyonu ile admin hesabı üretilemez. Admin kullanıcılar yalnızca veritabanı üzerinden veya kontrollü bir internal admin süreciyle oluşturulur ve güncellenir.
+
+Public repoda gerçek admin şifresi paylaşılmamalıdır. Demo veya değerlendirme ortamı için admin credential gerekiyorsa README yerine submission notu, private mesaj veya ayrı bir secret kanalı kullanılmalıdır. Yerel/demo admin hesabı için önerilen format:
+
+```text
+username: admin
+password: <shared privately for demo only>
+```
+
+Admin şifresi veritabanında plaintext tutulmaz; `user-service` Spring Security `PasswordEncoder` ile hashlenmiş parola saklar. Manuel admin oluşturulacaksa parola önce uygulamanın kullandığı encoder ile hashlenmeli, DB'ye hash değeri yazılmalıdır. Production ortamında demo şifresi kullanılmamalı ve ilk kurulumdan sonra admin parolası değiştirilmelidir.
+
 ## Katalog Lokalizasyonu
 
 Ürün ve kategori okuma endpointleri şu header ile lokalize cevap dönebilir:
