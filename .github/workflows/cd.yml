@@ -1,9 +1,22 @@
-name: CD Pipeline
+name: CD Backend Pipeline
 
 on:
   push:
     branches:
       - main
+    paths:
+      - 'api-gateway/**'
+      - 'cart-service/**'
+      - 'config-server/**'
+      - 'discover-server/**'
+      - 'order-service/**'
+      - 'payment-service/**'
+      - 'product-service/**'
+      - 'stock-service/**'
+      - 'user-service/**'
+      - 'docker-compose.yml'
+      - 'prometheus.yml'
+      - '.github/workflows/cd.yml'
 
 jobs:
   deploy:
