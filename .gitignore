@@ -14,6 +14,6 @@ target/
 logs/
 *.log
 
-n11-ecommerce-fe/
+
 
 .mvn/wrapper/maven-wrapper.jar
