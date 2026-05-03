@@ -1,0 +1,61 @@
+name: CI Frontend Pipeline
+
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - 'n11-ecommerce-fe/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'n11-ecommerce-fe/**'
+
+jobs:
+  validate-and-build:
+    name: CI Frontend Pipeline
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate commit message format
+        run: |
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          echo "Commit message: $COMMIT_MSG"
+          if ! echo "$COMMIT_MSG" | grep -qP '^v\d+\.\d+\.\d+ .+'; then
+            echo "❌ Commit must start with vX.Y.Z followed by a space"
+            echo "Example: v1.0.0 feat(cart): add coupon support"
+            exit 1
+          fi
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'n11-ecommerce-fe/package-lock.json'
+
+      - name: Install dependencies
+        working-directory: n11-ecommerce-fe
+        run: npm ci
+
+      - name: Build
+        working-directory: n11-ecommerce-fe
+        run: npm run build
+
+      - name: Slack — Success
+        if: success()
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_COLOR: good
+          SLACK_MESSAGE: "✅ Frontend CI passed — ${{ github.ref_name }} — ${{ github.event.head_commit.message }}"
+
+      - name: Slack — Failure
+        if: failure()
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_COLOR: danger
+          SLACK_MESSAGE: "❌ Frontend CI failed — ${{ github.ref_name }} — ${{ github.event.head_commit.message }}"

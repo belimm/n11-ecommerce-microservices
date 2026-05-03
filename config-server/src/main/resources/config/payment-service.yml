@@ -5,12 +5,15 @@ app:
   rabbitmq:
     stock-exchange: stock.exchange
     payment-exchange: payment.exchange
+    order-exchange: order.exchange
     stock-reserved-queue: stock.reserved.queue
     stock-reserved-routing-key: stock.reserved
     payment-success-queue: payment.success.queue
     payment-success-routing-key: payment.success
     payment-failed-queue: payment.failed.queue
     payment-failed-routing-key: payment.failed
+    order-cancelled-queue: payment.order-cancelled.queue
+    order-cancelled-routing-key: order.cancelled
   iyzico:
     api-key: ${IYZICO_API_KEY:}
     secret-key: ${IYZICO_SECRET_KEY:}

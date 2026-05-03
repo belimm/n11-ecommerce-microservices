@@ -40,7 +40,9 @@ import static org.assertj.core.api.Assertions.assertThat;
         "spring.jpa.hibernate.ddl-auto=create-drop",
         "spring.jpa.show-sql=false",
         "app.seed.enabled=false",
-        "spring.security.oauth2.resourceserver.jwt.issuer-uri=http://localhost/realms/test"
+        "spring.security.oauth2.resourceserver.jwt.issuer-uri=http://localhost/realms/test",
+        "spring.main.allow-bean-definition-overriding=true",
+        "app.jwt.secret=test-jwt-secret-key-that-is-at-least-32-bytes"
 })
 class ProductServiceIntegrationTest {
 

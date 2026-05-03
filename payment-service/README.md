@@ -50,4 +50,4 @@ Local sandbox denemelerinde default test kartı şu değerlerle override edilebi
 
 ## Kalan Küçük İş
 
-Payment cancel/refund tarafı küçük bir takip işi olarak duruyor. Order cancellation şu an stok compensation akışını tetikliyor; Iyzico cancel/refund eklenirken provider state ile lokal SAGA state aynı servis içinde hizalanmalı.
+Order cancellation artık payment-service tarafından da dinlenir. Başarılı Iyzico ödemelerinde `paymentId` ile `/payment/cancel` çağrısı yapılır; ödeme yakalanmadan önceki veya başarısız ödemelerde provider'a gereksiz çağrı yapılmadan lokal payment state kapatılır.

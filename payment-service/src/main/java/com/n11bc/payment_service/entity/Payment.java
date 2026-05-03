@@ -58,7 +58,7 @@ public class Payment {
     private String iyzicoPaymentId;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false, length = 20, columnDefinition = "varchar(20)")
     private PaymentStatus status;
 
     @Column(nullable = false, precision = 12, scale = 2)
@@ -103,6 +103,18 @@ public class Payment {
     public void markFailed(String iyzicoStatus, String reason) {
         this.iyzicoStatus = iyzicoStatus;
         this.status = PaymentStatus.FAILED;
+        this.failureReason = reason;
+    }
+
+    public void markCancelled(String iyzicoStatus) {
+        this.iyzicoStatus = iyzicoStatus;
+        this.status = PaymentStatus.CANCELLED;
+        this.failureReason = null;
+    }
+
+    public void markCancelFailed(String iyzicoStatus, String reason) {
+        this.iyzicoStatus = iyzicoStatus;
+        this.status = PaymentStatus.CANCEL_FAILED;
         this.failureReason = reason;
     }
 }

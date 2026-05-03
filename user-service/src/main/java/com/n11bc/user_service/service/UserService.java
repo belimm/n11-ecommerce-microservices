@@ -4,143 +4,69 @@ import com.n11bc.user_service.dto.request.ChangePasswordRequest;
 import com.n11bc.user_service.dto.request.SignupRequest;
 import com.n11bc.user_service.dto.request.UpdateUserRequest;
 import com.n11bc.user_service.dto.response.UserResponse;
-import com.n11bc.user_service.entity.Role;
 import com.n11bc.user_service.entity.User;
-import com.n11bc.user_service.exception.InvalidPasswordException;
-import com.n11bc.user_service.exception.UserAlreadyExistsException;
-import com.n11bc.user_service.exception.UserNotFoundException;
-import com.n11bc.user_service.mapper.UserMapper;
-import com.n11bc.user_service.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
-@Service
-@RequiredArgsConstructor
-@Slf4j
-public class UserService {
+public interface UserService {
 
-    private final UserRepository userRepository;
-    private final UserMapper userMapper;
-    private final PasswordEncoder passwordEncoder;
+    /**
+     * Registers a new customer account and ignores any role value supplied by the client.
+     */
+    UserResponse registerUser(SignupRequest request);
 
-    @Transactional
-    public UserResponse registerUser(SignupRequest request) {
-        if (userRepository.existsByUsername(request.getUsername())) {
-            throw new UserAlreadyExistsException("Username already exists: " + request.getUsername());
-        }
+    /**
+     * Finds a user by username or throws when no matching user exists.
+     */
+    User findByUsername(String username);
 
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new UserAlreadyExistsException("Email already exists: " + request.getEmail());
-        }
+    /**
+     * Finds a user by email or throws when no matching user exists.
+     */
+    User findByEmail(String email);
 
-        User user = userMapper.signupRequestToUser(request);
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setRole(Role.CUSTOMER);
-        user.setActive(true);
+    /**
+     * Finds a user by username or email for authentication and token flows.
+     */
+    User findByUsernameOrEmail(String usernameOrEmail);
 
-        User savedUser = userRepository.save(user);
-        log.info("User registered successfully: {}", savedUser.getUsername());
+    /**
+     * Returns a user profile by id.
+     */
+    UserResponse getUserById(String id);
 
-        return userMapper.userToUserResponse(savedUser);
-    }
+    /**
+     * Returns every user profile for admin screens.
+     */
+    List<UserResponse> getAllUsers();
 
-    public User findByUsername(String username) {
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -> new UserNotFoundException(username, "username"));
-    }
+    /**
+     * Updates editable profile fields for a user.
+     */
+    UserResponse updateUser(String id, UpdateUserRequest request);
 
-    public User findByEmail(String email) {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException(email, "email"));
-    }
+    /**
+     * Changes a user's password after validating the current password.
+     */
+    void changePassword(String id, ChangePasswordRequest request);
 
-    public User findByUsernameOrEmail(String usernameOrEmail) {
-        return userRepository.findByUsernameOrEmail(usernameOrEmail, usernameOrEmail)
-                .orElseThrow(() -> new UserNotFoundException("User not found with username or email: " + usernameOrEmail));
-    }
+    /**
+     * Deletes a user account.
+     */
+    void deleteUser(String id);
 
-    @Transactional(readOnly = true)
-    public UserResponse getUserById(String id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException(id, "id"));
-        return userMapper.userToUserResponse(user);
-    }
+    /**
+     * Marks a user account as active.
+     */
+    void activateUser(String id);
 
-    @Transactional(readOnly = true)
-    public List<UserResponse> getAllUsers() {
-        return userRepository.findAll().stream()
-                .map(userMapper::userToUserResponse)
-                .collect(Collectors.toList());
-    }
+    /**
+     * Marks a user account as inactive.
+     */
+    void deactivateUser(String id);
 
-    @Transactional
-    public UserResponse updateUser(String id, UpdateUserRequest request) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException(id, "id"));
-
-        if (request.getEmail() != null && !request.getEmail().equals(user.getEmail())) {
-            if (userRepository.existsByEmail(request.getEmail())) {
-                throw new UserAlreadyExistsException("Email already exists: " + request.getEmail());
-            }
-        }
-
-        userMapper.updateUserFromRequest(request, user);
-
-        User updatedUser = userRepository.save(user);
-        log.info("User updated successfully: {}", updatedUser.getUsername());
-
-        return userMapper.userToUserResponse(updatedUser);
-    }
-
-
-    @Transactional
-    public void changePassword(String id, ChangePasswordRequest request) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException(id, "id"));
-
-        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
-            throw new InvalidPasswordException("Current password is incorrect");
-        }
-
-        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
-        userRepository.save(user);
-        log.info("Password changed successfully for user: {}", user.getUsername());
-    }
-
-    @Transactional
-    public void deleteUser(String id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException(id, "id"));
-
-        userRepository.delete(user);
-        log.info("User deleted successfully: {}", user.getUsername());
-    }
-
-    @Transactional
-    public void activateUser(String id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException(id, "id"));
-        user.setActive(true);
-        userRepository.save(user);
-        log.info("User activated: {}", user.getUsername());
-    }
-
-    @Transactional
-    public void deactivateUser(String id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException(id, "id"));
-        user.setActive(false);
-        userRepository.save(user);
-        log.info("User deactivated: {}", user.getUsername());
-    }
-
-    public boolean verifyPassword(User user, String rawPassword) {
-        return passwordEncoder.matches(rawPassword, user.getPassword());
-    }
+    /**
+     * Verifies a raw password against the stored encoded password.
+     */
+    boolean verifyPassword(User user, String rawPassword);
 }

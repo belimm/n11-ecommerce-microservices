@@ -26,11 +26,17 @@ import java.time.LocalDateTime;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(AuthController.class)
+@WebMvcTest(value = AuthController.class, properties = {
+        "spring.config.import=",
+        "spring.cloud.config.enabled=false",
+        "spring.cloud.discovery.enabled=false",
+        "eureka.client.enabled=false"
+})
 class AuthControllerTest {
 
     @Autowired
@@ -83,6 +89,7 @@ class AuthControllerTest {
         when(userService.registerUser(any(SignupRequest.class))).thenReturn(userResponse);
 
         mockMvc.perform(post("/api/auth/signup")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -96,6 +103,7 @@ class AuthControllerTest {
         SignupRequest invalidRequest = new SignupRequest("ab", "not-email", "123", null, null, null, Role.CUSTOMER);
 
         mockMvc.perform(post("/api/auth/signup")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andExpect(status().isBadRequest());
@@ -108,6 +116,7 @@ class AuthControllerTest {
                 null, null, null, Role.CUSTOMER);
 
         mockMvc.perform(post("/api/auth/signup")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andExpect(status().isBadRequest());
@@ -122,6 +131,7 @@ class AuthControllerTest {
                 .thenThrow(new UserAlreadyExistsException("Username already exists: testuser"));
 
         mockMvc.perform(post("/api/auth/signup")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isConflict());
@@ -136,6 +146,7 @@ class AuthControllerTest {
         when(authService.authenticateUser(any(LoginRequest.class))).thenReturn(jwtResponse);
 
         mockMvc.perform(post("/api/auth/signin")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -152,6 +163,7 @@ class AuthControllerTest {
                 .thenThrow(new AuthenticationException("Invalid username or password"));
 
         mockMvc.perform(post("/api/auth/signin")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isUnauthorized());
@@ -163,6 +175,7 @@ class AuthControllerTest {
         LoginRequest request = new LoginRequest("", "");
 
         mockMvc.perform(post("/api/auth/signin")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
@@ -177,6 +190,7 @@ class AuthControllerTest {
         when(authService.refreshAccessToken(any(RefreshTokenRequest.class))).thenReturn(jwtResponse);
 
         mockMvc.perform(post("/api/auth/refresh")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -191,6 +205,7 @@ class AuthControllerTest {
                 .thenThrow(new AuthenticationException("Refresh token not found"));
 
         mockMvc.perform(post("/api/auth/refresh")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isUnauthorized());
@@ -202,6 +217,7 @@ class AuthControllerTest {
         RefreshTokenRequest request = new RefreshTokenRequest("");
 
         mockMvc.perform(post("/api/auth/refresh")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
@@ -213,6 +229,7 @@ class AuthControllerTest {
     @DisplayName("POST /api/auth/logout: basarili cikis 200 dondurur")
     void logout_success_returns200() throws Exception {
         mockMvc.perform(post("/api/auth/logout")
+                        .with(csrf())
                         .with(jwt())
                         .header("X-User-Id", "user-id-1"))
                 .andExpect(status().isOk())
@@ -223,6 +240,7 @@ class AuthControllerTest {
     @DisplayName("POST /api/auth/logout: header eksikse 400 dondurur")
     void logout_missingHeader_returns400() throws Exception {
         mockMvc.perform(post("/api/auth/logout")
+                        .with(csrf())
                         .with(jwt()))
                 .andExpect(status().isBadRequest());
     }

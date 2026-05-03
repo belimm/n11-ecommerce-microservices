@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: user-service
+  config:
+    import: ""
+  profiles:
+    active: test
+  cloud:
+    config:
+      enabled: false
+    discovery:
+      enabled: false
+  jpa:
+    show-sql: false
+
+eureka:
+  client:
+    enabled: false
+
+app:
+  jwt:
+    secret: test-jwt-secret-key-that-is-at-least-32-bytes
+    expiration-ms: 3600000
+  refresh-token:
+    expiration-ms: 604800000
