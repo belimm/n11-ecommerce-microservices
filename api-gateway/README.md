@@ -5,6 +5,7 @@ Backend'in public giriş noktasıdır. Frontend sadece bu servisi çağırmalıd
 ## Route Haritası
 
 
+
 | Path | Hedef servis |
 | --- | --- |
 | `/api/auth/**` | `user-service` |
