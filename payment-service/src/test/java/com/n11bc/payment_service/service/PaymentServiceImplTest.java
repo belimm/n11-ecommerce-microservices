@@ -136,6 +136,18 @@ class PaymentServiceImplTest {
         verify(paymentRepository, never()).save(any());
     }
 
+    @Test
+    void processOrderCancelled_whenCancellationAlreadyFailed_doesNotRetryProvider() {
+        Payment payment = successfulPayment();
+        payment.markCancelFailed("failure", "Payment cannot be cancelled");
+        when(paymentRepository.findByOrderId(100L)).thenReturn(Optional.of(payment));
+
+        paymentService.processOrderCancelled(orderCancelledEvent());
+
+        verify(iyzicoPaymentClient, never()).cancelPayment(any(), any());
+        verify(paymentRepository, never()).save(any());
+    }
+
     private Payment successfulPayment() {
         return Payment.builder()
                 .orderId(100L)

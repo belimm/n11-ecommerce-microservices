@@ -88,6 +88,10 @@ public class PaymentServiceImpl implements PaymentService {
             log.info("Payment for order {} already failed; provider cancellation is not required", event.orderId());
             return;
         }
+        if (payment.getStatus() == PaymentStatus.CANCEL_FAILED) {
+            log.info("Payment cancellation for order {} already failed; ignoring duplicate order cancellation", event.orderId());
+            return;
+        }
         if (payment.getStatus() == PaymentStatus.PENDING) {
             payment.markCancelled("cancelled_without_provider_capture");
             paymentRepository.save(payment);
