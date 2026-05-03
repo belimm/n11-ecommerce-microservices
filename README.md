@@ -449,7 +449,7 @@ Runtime URL'leri:
 | Ortam | Frontend | API Gateway | Swagger UI |
 | --- | --- | --- | --- |
 | Local | `http://localhost:4000` | `http://localhost:8080` | `http://localhost:8080/swagger-ui/index.html` |
-| Production | `https://n11market-berklimoncu.vercel.app` | `http://54.229.67.8:8080` | `http://54.229.67.8:8080/swagger-ui/index.html` |
+| Production | `https://berklimoncu-n11market.vercel.app` | `http://54.229.67.8:8080` | `http://54.229.67.8:8080/swagger-ui/index.html` |
 
 Production secrets GitHub Actions veya EC2 `.env.production` üzerinden yönetilir. DB, JWT, RabbitMQ, DockerHub, EC2 SSH, Iyzico ve mail gibi değerler servis YAML dosyalarına hardcode edilmemelidir.
 
