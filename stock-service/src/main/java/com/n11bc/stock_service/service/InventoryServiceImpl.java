@@ -88,6 +88,7 @@ public class InventoryServiceImpl implements InventoryService {
     @Transactional
     public StockReservedEvent reserveStock(OrderCreatedEvent event) {
         List<StockReservation> existingReservations = reservationRepository.findByOrderId(event.orderId());
+        // RabbitMQ may redeliver events; existing reservations make stock reservation idempotent per order.
         if (!existingReservations.isEmpty()) {
             boolean hasReservedReservation = existingReservations.stream().anyMatch(StockReservation::isReserved);
             if (!hasReservedReservation) {
@@ -114,6 +115,7 @@ public class InventoryServiceImpl implements InventoryService {
             return new StockReleasedEvent(orderId, null, reasonOrDefault(reason), LocalDateTime.now());
         }
 
+        // Only RESERVED rows are released; already released rows are ignored to keep compensation repeat-safe.
         reservations.stream()
                 .filter(StockReservation::isReserved)
                 .forEach(this::releaseReservation);
@@ -151,6 +153,7 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     private StockReservedEvent toStockReservedEvent(OrderCreatedEvent event, List<StockReservation> reservations) {
+        // Reservation rows do not store prices, so the outgoing event reuses the immutable order item snapshot.
         Map<Long, OrderCreatedEvent.OrderCreatedItem> originalItems = event.items().stream()
                 .collect(Collectors.toMap(OrderCreatedEvent.OrderCreatedItem::productId, Function.identity(), (first, ignored) -> first));
         List<StockReservedEvent.StockReservedItem> items = reservations.stream()
